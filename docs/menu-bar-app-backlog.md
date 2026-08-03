@@ -43,8 +43,8 @@ their current contracts.
 
 ## P1-1: Define menu-bar application lifetime policy
 
-**Status:** ✅ Completed  
-**Priority:** P1  
+**Status:** ✅ Completed
+**Priority:** P1
 **Depends on:** -
 
 ### Outcome
@@ -108,8 +108,8 @@ git commit -m "feat(lifecycle): Support menu bar lifetime"
 
 ## P1-2: Expose Countpane through the macOS menu bar
 
-**Status:** ✅ Completed  
-**Priority:** P1  
+**Status:** ✅ Completed
+**Priority:** P1
 **Depends on:** P1-1
 
 ### Outcome
@@ -192,8 +192,8 @@ git commit -m "feat(menubar): Run Countpane from menu bar"
 
 ## P2-1: Document and release-check menu-bar behaviour
 
-**Status:** ✅ Completed  
-**Priority:** P2  
+**Status:** ✅ Completed
+**Priority:** P2
 **Depends on:** P1-2
 
 ### Outcome

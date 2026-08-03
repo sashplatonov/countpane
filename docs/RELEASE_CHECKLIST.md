@@ -27,9 +27,9 @@
 
 ## Resource and battery verification
 
-- [ ] The release candidate was measured with the protocol in `docs/resource-efficiency-baseline.md` on AC and battery power.
+- [ ] The release candidate was measured on AC and battery power; the recorded protocol and results accompany the release review.
 - [ ] Raw Instruments traces remain outside the repository and contain no personal countdown data.
-- [ ] The no-widget scenario exits after the final management window closes; the widget-only scenario keeps enabled widgets alive.
+- [ ] With no desktop widgets, closing the final management window leaves Countpane available from the menu bar; **Quit Countpane** ends the process cleanly.
 - [ ] Automatic-update opt-out produces no automatic release request or Homebrew detection process; manual checking still works.
 - [ ] Sleep/wake does not create duplicate widgets, timers, or update requests, and date-derived labels refresh after wake.
 - [ ] CPU, energy, memory, disk, network, and process results are recorded separately for `arm64` and `x86_64`, with any measurement gap documented.

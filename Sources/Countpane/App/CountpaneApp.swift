@@ -100,9 +100,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return false
         }
 
-        // Keep the app alive when countdown widgets are being used without the
-        // management window. Once the initial load is complete, an empty
-        // widget set has no user-visible reason to keep a background process.
+        // The persistent menu-bar entry point keeps Countpane available after
+        // its management and widget windows have been closed.
         return AppLifetimePolicy.shouldTerminateAfterLastWindowClosed(
             isModelLoaded: AppModel.shared.isLoaded,
             visibleWidgetCount: AppModel.shared.visibleWidgetItems.count,

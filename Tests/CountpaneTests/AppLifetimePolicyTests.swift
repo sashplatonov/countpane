@@ -12,13 +12,17 @@ struct AppLifetimePolicyTests {
         ))
     }
 
-    @Test("No visible widgets allow the process to terminate after loading")
+    @Test("No visible entry point allows the process to terminate after loading")
     func emptyWidgetState() {
         #expect(AppLifetimePolicy.shouldTerminateAfterLastWindowClosed(
             isModelLoaded: true,
             visibleWidgetCount: 0,
             hasMenuBarEntryPoint: false
         ))
+    }
+
+    @Test("Menu bar keeps the loaded app alive without widgets")
+    func menuBarEntryPoint() {
         #expect(!AppLifetimePolicy.shouldTerminateAfterLastWindowClosed(
             isModelLoaded: true,
             visibleWidgetCount: 0,
@@ -35,7 +39,7 @@ struct AppLifetimePolicyTests {
         ))
     }
 
-    @Test("An early close terminates only after loading with no visible window or widget")
+    @Test("An early close terminates only with no visible entry point")
     func earlyWindowClose() {
         #expect(AppLifetimePolicy.shouldTerminateAfterInitialLoad(
             hasPendingLastWindowClose: true,
