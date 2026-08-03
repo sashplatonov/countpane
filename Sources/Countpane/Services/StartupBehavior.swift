@@ -12,6 +12,18 @@ struct StartupPresentationDecision: Equatable, Sendable {
     }
 }
 
+enum AppLifetimePolicy {
+    /// Keep the process alive while the model is still loading so closing a
+    /// window cannot race the initial persistence read. Once loaded, only
+    /// active visible widgets justify a background process.
+    static func shouldTerminateAfterLastWindowClosed(
+        isModelLoaded: Bool,
+        visibleWidgetCount: Int
+    ) -> Bool {
+        isModelLoaded && visibleWidgetCount == 0
+    }
+}
+
 @MainActor
 @Observable
 final class LaunchSession {

@@ -92,8 +92,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         // Keep the app alive when countdown widgets are being used without the
-        // management window. The user can still quit from the app menu.
-        false
+        // management window. Once the initial load is complete, an empty
+        // widget set has no user-visible reason to keep a background process.
+        AppLifetimePolicy.shouldTerminateAfterLastWindowClosed(
+            isModelLoaded: AppModel.shared.isLoaded,
+            visibleWidgetCount: AppModel.shared.visibleWidgetItems.count
+        )
     }
 }
 
