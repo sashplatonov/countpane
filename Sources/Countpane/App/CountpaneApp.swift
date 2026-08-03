@@ -27,15 +27,6 @@ struct CountpaneApp: App {
         .windowResizability(.contentSize)
         .defaultPosition(.center)
 
-        WindowGroup("Countdown Widget", id: "widget", for: UUID.self) { $id in
-            if let id {
-                CountdownWidgetView(id: id)
-                    .environment(model)
-            }
-        }
-        .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
-        .defaultSize(width: 270, height: 160)
     }
 }
 
@@ -54,9 +45,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         LaunchSession.shared.configure(from: notification)
 
-        // Login launches always stay in the background. RootView opens the
-        // enabled desktop widgets and closes the management window.
+        // Widget panels are restored after the persistent model has loaded.
+        // Login launches stay in the background; RootView only closes any
+        // transient management window SwiftUI may create for that launch.
         UpdateController.shared.startAutomaticChecks()
+
+        Task { @MainActor in
+            await AppModel.shared.load()
+            WidgetWindowController.shared.sync(with: AppModel.shared.visibleWidgetItems)
+        }
 
         guard !LaunchSession.shared.isLoginLaunch else { return }
 

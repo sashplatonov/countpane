@@ -3,7 +3,6 @@ import SwiftUI
 
 struct CountdownWidgetView: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.dismissWindow) private var dismissWindow
     let id: UUID
 
     var body: some View {
@@ -11,16 +10,10 @@ struct CountdownWidgetView: View {
             if let item = model.item(id: id), !item.isCompleted, item.isWidgetVisible {
                 widget(item, now: context.date)
                     .frame(width: 270, height: 160)
-                    .background(
-                        WidgetWindowConfigurator(
-                            id: item.id,
-                            size: CGSize(width: 270, height: 160)
-                        )
-                    )
             } else {
                 Color.clear
                     .frame(width: 1, height: 1)
-                    .task { dismissWindow(id: "widget", value: id) }
+                    .task { WidgetWindowController.shared.dismiss(id: id) }
             }
         }
     }
@@ -53,6 +46,7 @@ struct CountdownWidgetView: View {
 
                     Button {
                         model.setWidgetVisible(item, false)
+                        WidgetWindowController.shared.dismiss(id: id)
                     } label: {
                         Image(systemName: "xmark")
                             .font(.caption.bold())
@@ -96,33 +90,5 @@ struct CountdownWidgetView: View {
         .padding(12)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(item.title), \(duration.accessibilityText)")
-    }
-}
-
-struct WidgetWindowConfigurator: NSViewRepresentable {
-    let id: UUID
-    let size: CGSize
-
-    func makeNSView(context: Context) -> WindowObservationView {
-        let view = WindowObservationView()
-        view.onWindowChange = configure
-        return view
-    }
-
-    func updateNSView(_ view: WindowObservationView, context: Context) {
-        view.onWindowChange = configure
-        if let window = view.window { configure(window) }
-    }
-
-    private func configure(_ window: NSWindow) {
-        window.level = .floating
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        window.styleMask.remove([.titled, .closable, .miniaturizable, .resizable])
-        window.isOpaque = false
-        window.backgroundColor = .clear
-        window.hasShadow = false
-        window.isMovableByWindowBackground = true
-        window.setContentSize(size)
-        window.setFrameAutosaveName("CountpaneWidget-\(id.uuidString)")
     }
 }

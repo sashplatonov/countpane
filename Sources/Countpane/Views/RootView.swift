@@ -2,7 +2,6 @@ import SwiftUI
 
 struct RootView: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.openWindow) private var openWindow
     @Environment(\.dismissWindow) private var dismissWindow
     @AppStorage("appTheme") private var appTheme = AppTheme.ink.rawValue
     @AppStorage("displayDensity") private var displayDensity = DisplayDensity.compactRow.rawValue
@@ -327,7 +326,7 @@ struct RootView: View {
     }
 
     private func openVisibleWidgets() {
-        for id in widgetIDs { openWindow(id: "widget", value: id) }
+        WidgetWindowController.shared.sync(with: model.visibleWidgetItems)
     }
 
     private func applyStartupPresentation() {
