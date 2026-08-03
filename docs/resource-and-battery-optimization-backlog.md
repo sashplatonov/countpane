@@ -26,8 +26,8 @@ Reduce Countpane's CPU wakeups, memory/GPU work, disk writes, and network/proces
 
 ## P1-1: Define a repeatable resource and battery baseline
 
-**Status:** 🚧 In progress  
-**Priority:** P1  
+**Status:** 🚧 In progress
+**Priority:** P1
 **Depends on:** -
 
 ### Outcome
@@ -78,8 +78,8 @@ git commit -m "docs(performance): Define resource baseline"
 
 ## P1-2: End the idle process when no desktop widget requires it
 
-**Status:** 🚧 In progress  
-**Priority:** P1  
+**Status:** 🚧 In progress
+**Priority:** P1
 **Depends on:** P1-1
 
 ### Outcome
@@ -130,8 +130,8 @@ git commit -m "perf(lifecycle): Exit without visible widgets"
 
 ## P1-3: Make automatic update work lifecycle-aware and coalesced
 
-**Status:** 🚧 In progress  
-**Priority:** P1  
+**Status:** 🚧 In progress
+**Priority:** P1
 **Depends on:** P1-1
 
 ### Outcome
@@ -185,8 +185,8 @@ git commit -m "perf(updates): Coalesce background checks"
 
 ## P2-1: Eliminate measured duplicate dashboard derivation
 
-**Status:** 🚧 In progress  
-**Priority:** P2  
+**Status:** 🚧 In progress
+**Priority:** P2
 **Depends on:** P1-1
 
 ### Outcome
@@ -238,8 +238,8 @@ git commit -m "perf(dashboard): Share derived countdown data"
 
 ## P2-2: Prove idle and battery behavior in the packaged app
 
-**Status:** 🚧 In progress  
-**Priority:** P2  
+**Status:** 🚧 In progress
+**Priority:** P2
 **Depends on:** P1-2, P1-3, P2-1
 
 ### Outcome
