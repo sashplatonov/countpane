@@ -29,6 +29,12 @@ brew tap sashplatonov/apps
 brew install --cask countpane
 ```
 
+Or install the fully qualified cask in one line:
+
+```bash
+brew install --cask sashplatonov/apps/countpane
+```
+
 Then open **Countpane** from Applications. To update later:
 
 ```bash
