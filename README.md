@@ -1,88 +1,106 @@
+<a id="top"></a>
+
 # Countpane
 
-**Desktop Countdown Widgets for Mac**
+**Keep the dates that matter visible, without filling your calendar.**
 
-Countpane is a native, local-first macOS application by [Sash Platonov](https://github.com/sashplatonov). It provides one focused dashboard for important dates and independent rounded countdown windows that remain visible above ordinary application windows.
+Countpane is a private, native Mac app for deadlines, anniversaries, trips, launches, and every other date you do not want to lose track of. Create a countdown once, then keep it on your desktop as a small, always-visible widget while you work.
+
+<a id="table-of-contents"></a>
+
+## Table of contents
+
+- [Install with Homebrew](#install-with-homebrew)
+- [Why Countpane](#why-countpane)
+- [What you can do](#what-you-can-do)
+- [Get started](#get-started)
+- [Privacy and backups](#privacy-and-backups)
+- [Updates](#updates)
+- [Build from source](#build-from-source)
+- [Releases and quality](#releases-and-quality)
+- [Security and license](#security-and-license)
+
+## ⚡ Install with Homebrew
+
+Install Countpane with:
+
+```bash
+brew tap sashplatonov/apps
+brew install --cask countpane
+```
+
+Then open **Countpane** from Applications. To update later:
+
+```bash
+brew update
+brew upgrade --cask countpane
+```
+
+[↑ Back to top](#top)
 
 ![Countpane app preview](docs/app-preview.png)
 
-## Highlights
+## ✨ Why Countpane
 
-- Multiple active and completed countdowns
-- Human-readable durations such as `2 years 3 months 4 days`
-- Configurable urgency stages
-- Compact Row and responsive Card Grid layouts
-- Independent rounded always-on-top desktop widgets
-- Light and dark application themes plus per-countdown themes
-- Search, sorting, pinning, quick date shifts, completion, restore, and one-level undo
-- Launch at Login with background widget startup
-- Local-only storage with atomic JSON writes
-- Versioned JSON import and export for backups and moving data between Macs
-- Semantic product versions, automatic build timestamps, and an in-app update center
+Calendars are excellent for appointments. Countpane is for the dates you want to keep in view between appointments: a visa deadline, a birthday, a move, a product launch, or a long-awaited trip.
 
-## Why This Project
+- Keep upcoming dates visible in independent, rounded desktop widgets.
+- See the remaining time in plain language, from days to years and months.
+- Work privately: no account, cloud sync, analytics, or server is required.
+- Focus on what is next with search, pinning, sorting, and a dedicated **Next Up** view.
 
-I am primarily a Senior Java Backend Engineer. Countpane is intentionally local-first and backend-free: a server, account system, database, or network API would not improve its core use case.
+[↑ Back to top](#top)
 
-I built it to demonstrate end-to-end product ownership outside my main stack: learning platform-specific APIs, designing deterministic state transitions, using concurrency-safe persistence, integrating SwiftUI with AppKit window behavior, writing tests, and automating packaging and releases.
+## 🧩 What you can do
 
-## Tech Stack
+- Create active and completed countdowns with notes, symbols, and individual themes.
+- Choose compact Rows or a responsive Card Grid for the main dashboard.
+- Show or hide a floating widget for each active countdown.
+- Set urgency stages so approaching dates are easy to spot.
+- Pin important items, shift dates quickly, mark items complete, restore them, or undo the last change.
+- Start Countpane at login and show widgets without opening the main window.
+- Use light, dark, or adaptive application themes.
+- Export a backup before moving to another Mac, then import it when needed.
 
-- macOS 15+ on Apple Silicon or Intel
-- Swift 6
-- SwiftUI and AppKit
-- Observation with `@Observable`
-- Actor-isolated atomic JSON persistence
-- Swift Testing
-- ServiceManagement for Launch at Login
-- GitHub Actions
-- Universal Binary DMG and Homebrew Cask packaging
+[↑ Back to top](#top)
 
-## Architecture
+## 🚀 Get started
 
-```mermaid
-flowchart LR
-    UI[SwiftUI management UI] --> Model[MainActor AppModel]
-    Widgets[AppKit-backed widget windows] --> Model
-    Model --> Repository[CountdownRepository actor]
-    Repository --> JSON[Atomic local JSON file]
-    Settings[Settings data tools] --> Transfer[Versioned JSON transfer]
-    Transfer --> Model
-    Updates[UpdateController] --> Releases[GitHub Releases API]
-    Updates --> Brew[Homebrew process adapter]
-```
+1. Open Countpane and select **Add Countdown**.
+2. Give it a title and target date; add a note, symbol, or colour if helpful.
+3. Enable its desktop widget to keep the countdown visible above other windows.
+4. In Settings, adjust urgency stages, appearance, Launch at Login, and automatic update checks.
+5. Use **Export** in Settings before changing Macs or making a major edit to your list.
 
-The application separates management UI, desktop-widget windows, application state, and persistence. SwiftUI handles the product interface, while AppKit integration controls activation, keyboard focus, window levels, and independent floating windows.
+[↑ Back to top](#top)
 
-The project uses Swift Package Manager as the source and test build system. Packaging scripts assemble the standard macOS application bundle (`Contents/Info.plist`, `Contents/MacOS`, and `Contents/Resources`). This keeps the repository lightweight and makes the build steps explicit, at the cost of managing signing and packaging outside an Xcode application target.
+## 🔒 Privacy and backups
 
-## Project Structure
+Your countdowns stay on your Mac at:
 
 ```text
-.
-├── Package.swift
-├── Sources/Countpane/
-│   ├── App/
-│   ├── Models/
-│   ├── Services/
-│   ├── UI/
-│   ├── Views/
-│   └── Resources/
-├── Tests/CountpaneTests/
-├── Packaging/
-├── Scripts/
-├── .github/workflows/
-└── docs/
+~/Library/Application Support/Countpane/countpane.json
 ```
 
-**Repository:** [github.com/sashplatonov/countpane](https://github.com/sashplatonov/countpane)
+Countpane has no account or analytics service. Automatic update checks are optional; they query the public GitHub Releases API and send only the product version. Titles, dates, notes, and backup files are never transmitted.
 
-## Build from Source
+Backups use Countpane's current versioned JSON format. Import checks the format, duplicate identifiers, required titles, and urgency settings before replacing the local list. Unsupported or older backup formats are rejected rather than changed silently.
 
-Requirements:
+📝 Keep exported backups somewhere you control, such as an encrypted drive or your own private cloud folder.
 
-- macOS 15 or newer
-- Xcode 16 or newer
+[↑ Back to top](#top)
+
+## 🔄 Updates
+
+Countpane can check for a new version automatically or when you ask it to. For a Homebrew installation, **Install Update** runs a bounded Homebrew update outside the app's interface. For a DMG installation, Countpane opens the newest release page.
+
+If Homebrew is unavailable, the tap has not propagated yet, the network is offline, or GitHub rate-limits a request, Countpane explains the problem without exposing your data.
+
+[↑ Back to top](#top)
+
+## 🛠️ Build from source
+
+Requirements: macOS 15+ and Xcode 16+.
 
 ```bash
 git clone https://github.com/sashplatonov/countpane.git
@@ -92,121 +110,33 @@ swift test
 open dist/Countpane.app
 ```
 
-Build a DMG locally:
+Build a local DMG:
 
 ```bash
 ./Scripts/build-dmg.sh 1.0.0
 ```
 
-## Releases
+[↑ Back to top](#top)
 
-CI runs the test suite natively on both Apple Silicon (`macos-15`) and Intel (`macos-15-intel`). Tagged releases are built by `.github/workflows/release.yml`:
+## ✅ Releases and quality
+
+GitHub Actions runs the test suite natively on Apple Silicon and Intel Macs. A semantic tag such as `v1.0.0` builds a Universal app, creates a DMG and checksum, publishes a GitHub Release, and generates the Homebrew cask.
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-The release workflow runs the tagged source natively on both Apple Silicon and Intel, builds the Universal app, creates a versioned DMG and checksum, publishes a GitHub Release, and generates a Homebrew Cask. Release tags must use semantic versions such as `v1.2.0`.
+Packaging uses Hardened Runtime and ad-hoc signing. A Developer ID certificate and Apple notarization are still required for distribution without Gatekeeper prompts; until they are configured, DMG and Homebrew distribution are experimental.
 
-The build produces one Universal Binary containing `arm64` and `x86_64`. Packaging includes an explicit entitlements file and Hardened Runtime. The current public workflow still uses ad-hoc signing unless a Developer ID certificate is provided. Public distribution without Gatekeeper friction requires a Developer ID Application certificate and Apple notarization. Until signing and notarization are configured and verified, DMG and Homebrew installation should be treated as **experimental**.
+For release maintainers, see the [release checklist](docs/RELEASE_CHECKLIST.md).
 
-## Homebrew
+[↑ Back to top](#top)
 
-After a verified release and a configured `sashplatonov/homebrew-countpane` repository:
+## 🛡️ Security and license
 
-```bash
-brew tap sashplatonov/tap
-brew install --cask countpane
-```
+Report vulnerabilities privately according to [SECURITY.md](SECURITY.md). Never attach unredacted backups to a public issue.
 
-The `HOMEBREW_TAP_TOKEN` repository secret updates the Cask in `sashplatonov/homebrew-countpane` whenever a tagged release is published. Without it, the release still contains a generated `countpane.rb` asset for manual publication.
+Countpane is available under the [MIT License](LICENSE).
 
-Update Countpane manually:
-
-```bash
-brew update
-brew upgrade --cask countpane
-```
-
-Homebrew updates its package metadata automatically before many commands, but it does not silently upgrade Countpane in the background. To enable periodic background upgrades only for Countpane, install the maintained `brew autoupdate` external command and create a launch agent:
-
-```bash
-brew tap domt4/autoupdate
-brew trust --command domt4/autoupdate/autoupdate
-brew autoupdate start 1d --upgrade --cleanup --immediate --only=sashplatonov/tap/countpane
-```
-
-Check or disable it with:
-
-```bash
-brew autoupdate status
-brew autoupdate delete
-```
-
-This updater is optional and maintained outside the Countpane repository.
-
-## Testing
-
-```bash
-swift test
-```
-
-Tests are grouped by responsibility and cover duration formatting, urgency, persistence, JSON transfer validation, filtering and sorting, undo, Next Up selection, widget presentation, themes, startup behavior, semantic release comparison, update states, Homebrew failures, and process timeouts.
-
-## Data and Privacy
-
-Countpane requires no account or analytics service. Countdown data remains local at:
-
-```text
-~/Library/Application Support/Countpane/countpane.json
-```
-
-Writes use an actor-isolated repository and atomic file replacement. Pending changes are flushed when the application terminates.
-
-Settings includes versioned JSON export and import. Import validates the current schema, duplicate identifiers, required titles, and urgency thresholds before asking the user to replace the existing local collection. Countpane does not silently migrate unsupported backup formats.
-
-Automatic update checks are optional and enabled by default. They make a read-only request to the public GitHub Releases API and send only the Countpane product version in the User-Agent. Countdown titles, dates, notes, JSON backups, and other personal data are never transmitted. Homebrew is invoked only after the user explicitly chooses **Install Update**.
-
-## Product and Build Versions
-
-GitHub tags and `CFBundleShortVersionString` use semantic product versions such as `1.2.0`. The updater compares these values numerically.
-
-Each `.app` build also receives an automatic timestamp in `yyyyMMdd-HHmm` format. `Scripts/build-app.sh` stores it as build metadata and About displays both values. Set `BUILD_TIMESTAMP` only for a reproducible CI identifier.
-
-## Portfolio Positioning
-
-Countpane demonstrates engineering breadth and complete product delivery rather than Java backend architecture. The strongest signals are:
-
-- native macOS window architecture beyond one SwiftUI scene;
-- deterministic domain logic and concurrency-safe persistence;
-- platform integration and troubleshooting;
-- automated tests, packaging, GitHub Releases, and Homebrew generation;
-- explicit local-first product and privacy decisions.
-
-Suggested repository description:
-
-> Native macOS countdown widgets built with SwiftUI and AppKit, featuring local persistence, floating desktop windows, tests, CI/CD, DMG packaging, and Homebrew automation.
-
-Suggested topics:
-
-`macos` `swift` `swiftui` `appkit` `countdown` `desktop-widget` `macos15` `observation` `swift-testing` `homebrew-cask`
-
-## Release Verification
-
-Before promoting a release, complete [the release checklist](docs/RELEASE_CHECKLIST.md).
-
-## License
-
-MIT
-
-
-## Software Updates
-
-Countpane can check the public GitHub Releases API manually or automatically. Automatic checks can be disabled in Settings. The app compares semantic product versions, not build dates.
-
-For Homebrew installations, **Install Update** runs a bounded, non-interactive Homebrew update outside the UI thread. For DMG installations, Countpane opens the latest release page. The updater reports unavailable Homebrew, timeouts, tap propagation delays, GitHub rate limits, and offline failures without exposing private countdown data.
-
-## Security
-
-See [SECURITY.md](SECURITY.md) for private vulnerability reporting. Do not attach unredacted JSON backups to public issues.
+[↑ Back to top](#top)
