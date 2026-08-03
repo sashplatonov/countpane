@@ -17,4 +17,20 @@ struct StartupPresentationTests {
         #expect(!decision.showMainWindow)
         #expect(decision.showCountdownWidgets)
     }
+
+    @Test("Login launch suppression is applied only once")
+    func loginLaunchSuppression() {
+        #expect(StartupPresentationDecision.shouldDismissMainWindow(
+            isLoginLaunch: true,
+            hasAppliedStartupPresentation: false
+        ))
+        #expect(!StartupPresentationDecision.shouldDismissMainWindow(
+            isLoginLaunch: true,
+            hasAppliedStartupPresentation: true
+        ))
+        #expect(!StartupPresentationDecision.shouldDismissMainWindow(
+            isLoginLaunch: false,
+            hasAppliedStartupPresentation: false
+        ))
+    }
 }

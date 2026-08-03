@@ -10,6 +10,13 @@ struct StartupPresentationDecision: Equatable, Sendable {
     static func resolve(isLoginLaunch: Bool) -> Self {
         Self(showMainWindow: !isLoginLaunch, showCountdownWidgets: true)
     }
+
+    static func shouldDismissMainWindow(
+        isLoginLaunch: Bool,
+        hasAppliedStartupPresentation: Bool
+    ) -> Bool {
+        isLoginLaunch && !hasAppliedStartupPresentation
+    }
 }
 
 enum AppLifetimePolicy {
@@ -40,6 +47,7 @@ final class LaunchSession {
     static let shared = LaunchSession()
 
     private(set) var isLoginLaunch = false
+    private var hasAppliedStartupPresentation = false
 
     private init() {}
 
@@ -48,6 +56,15 @@ final class LaunchSession {
         // launch is a normal user launch; a login-item launch is non-default.
         let defaultLaunch = notification.userInfo?[NSApplication.launchIsDefaultUserInfoKey] as? Bool ?? true
         isLoginLaunch = !defaultLaunch
+    }
+
+    func shouldDismissMainWindowForStartup() -> Bool {
+        let shouldDismiss = StartupPresentationDecision.shouldDismissMainWindow(
+            isLoginLaunch: isLoginLaunch,
+            hasAppliedStartupPresentation: hasAppliedStartupPresentation
+        )
+        hasAppliedStartupPresentation = true
+        return shouldDismiss
     }
 }
 

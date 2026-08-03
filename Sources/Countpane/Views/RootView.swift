@@ -309,7 +309,7 @@ struct RootView: View {
 
     private func applyStartupPresentation() {
         openVisibleWidgets()
-        if LaunchSession.shared.isLoginLaunch {
+        if LaunchSession.shared.shouldDismissMainWindowForStartup() {
             DispatchQueue.main.async { dismissWindow(id: "main") }
         }
     }
