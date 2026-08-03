@@ -17,7 +17,7 @@ struct ReviewRegressionTests {
 
         try await repository.save([item])
 
-        #expect(FileManager.default.fileExists(atPath: file.path()))
+        #expect(FileManager.default.fileExists(atPath: file.path(percentEncoded: false)))
         #expect(try await repository.load() == [item])
     }
 }

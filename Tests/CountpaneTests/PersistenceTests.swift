@@ -20,7 +20,7 @@ struct CountdownRepositoryTests {
         let loaded = try await repository.load()
 
         #expect(loaded == items)
-        #expect(FileManager.default.fileExists(atPath: location.path()))
+        #expect(FileManager.default.fileExists(atPath: location.path(percentEncoded: false)))
         let header = try Data(contentsOf: location).prefix(16)
         #expect(String(decoding: header, as: UTF8.self) == "SQLite format 3\0")
     }
@@ -75,7 +75,7 @@ struct CountdownRepositoryTests {
 
     private func temporaryFileURL() -> URL {
         let directory = FileManager.default.temporaryDirectory
-            .appending(path: "CountpaneTests-\(UUID().uuidString)", directoryHint: .isDirectory)
+            .appending(path: "Countpane Tests-\(UUID().uuidString)", directoryHint: .isDirectory)
         try! FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         return directory.appending(path: "countpane.sqlite3")
     }

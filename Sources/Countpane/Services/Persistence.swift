@@ -128,7 +128,7 @@ actor CountdownRepository: CountdownStoring {
 
         var connection: OpaquePointer?
         let flags = SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX
-        guard sqlite3_open_v2(databaseURL.path(), &connection, flags, nil) == SQLITE_OK,
+        guard sqlite3_open_v2(databaseURL.path(percentEncoded: false), &connection, flags, nil) == SQLITE_OK,
               let connection else {
             let message = connection.map { String(cString: sqlite3_errmsg($0)) } ?? "Unable to open database."
             if let connection { sqlite3_close(connection) }
