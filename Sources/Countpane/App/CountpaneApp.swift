@@ -17,6 +17,11 @@ struct CountpaneApp: App {
         .windowResizability(.contentMinSize)
         .commands { AppCommands() }
 
+        MenuBarExtra("Countpane", systemImage: "calendar.badge.clock") {
+            MenuBarView()
+        }
+        .menuBarExtraStyle(.menu)
+
         Window("About Countpane", id: "about") {
             AboutView()
         }
@@ -42,11 +47,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillFinishLaunching(_ notification: Notification) {
         installApplicationIcon()
 
-        // Swift Package executables do not always enter the normal foreground
-        // application activation policy automatically. Without .regular, menu
-        // actions such as Paste may work while physical keyDown events are not
-        // delivered reliably to text fields.
-        NSApp.setActivationPolicy(.regular)
+        // Keep Countpane in the menu bar without creating a Dock tile. Windows
+        // opened from the menu bar can still become key after activation.
+        NSApp.setActivationPolicy(.accessory)
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -102,7 +105,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // widget set has no user-visible reason to keep a background process.
         return AppLifetimePolicy.shouldTerminateAfterLastWindowClosed(
             isModelLoaded: AppModel.shared.isLoaded,
-            visibleWidgetCount: AppModel.shared.visibleWidgetItems.count
+            visibleWidgetCount: AppModel.shared.visibleWidgetItems.count,
+            hasMenuBarEntryPoint: true
         )
     }
 
@@ -114,7 +118,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let shouldTerminate = AppLifetimePolicy.shouldTerminateAfterInitialLoad(
                 hasPendingLastWindowClose: self.pendingInitialLoadTermination,
                 visibleWindowCount: NSApp.windows.count(where: \.isVisible),
-                visibleWidgetCount: AppModel.shared.visibleWidgetItems.count
+                visibleWidgetCount: AppModel.shared.visibleWidgetItems.count,
+                hasMenuBarEntryPoint: true
             )
             self.pendingInitialLoadTermination = false
             if shouldTerminate {
@@ -153,12 +158,30 @@ struct AppCommands: Commands {
         }
         CommandGroup(after: .windowArrangement) {
             Button("Show Main Window") {
-                NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
                 openWindow(id: "main")
             }
             .keyboardShortcut("0")
         }
+    }
+}
+
+private struct MenuBarView: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button("Show Main Window") {
+            NSApp.activate(ignoringOtherApps: true)
+            openWindow(id: "main")
+        }
+        .keyboardShortcut("0")
+
+        Divider()
+
+        Button("Quit Countpane") {
+            NSApp.terminate(nil)
+        }
+        .keyboardShortcut("q")
     }
 }
 
