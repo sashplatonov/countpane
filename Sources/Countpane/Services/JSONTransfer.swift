@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct CountpaneExportDocument: Codable, Equatable, Sendable {
-    static let currentFormatVersion = 1
+    static let currentFormatVersion = 2
 
     let formatVersion: Int
     let exportedAt: Date
@@ -14,6 +14,10 @@ struct CountpaneExportDocument: Codable, Equatable, Sendable {
         self.exportedAt = exportedAt
         self.items = items
     }
+}
+
+private struct CountpaneExportHeader: Decodable {
+    let formatVersion: Int
 }
 
 enum CountpaneTransferError: LocalizedError, Equatable {
@@ -45,10 +49,11 @@ enum CountpaneJSONTransfer {
     }
 
     static func decode(_ data: Data) throws -> CountpaneExportDocument {
-        let document = try JSONDecoder.configured.decode(CountpaneExportDocument.self, from: data)
-        guard document.formatVersion == CountpaneExportDocument.currentFormatVersion else {
-            throw CountpaneTransferError.unsupportedFormat(document.formatVersion)
+        let header = try JSONDecoder().decode(CountpaneExportHeader.self, from: data)
+        guard header.formatVersion == CountpaneExportDocument.currentFormatVersion else {
+            throw CountpaneTransferError.unsupportedFormat(header.formatVersion)
         }
+        let document = try JSONDecoder.configured.decode(CountpaneExportDocument.self, from: data)
         try validate(document.items)
         return document
     }

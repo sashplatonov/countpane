@@ -15,7 +15,7 @@ struct JSONTransferTests {
         let data = try CountpaneJSONTransfer.encode(items: items, exportedAt: exportedAt)
         let decoded = try CountpaneJSONTransfer.decode(data)
 
-        #expect(decoded.formatVersion == 1)
+        #expect(decoded.formatVersion == 2)
         #expect(decoded.exportedAt == exportedAt)
         #expect(decoded.items == items)
     }
@@ -24,13 +24,13 @@ struct JSONTransferTests {
     func unsupportedVersion() throws {
         let json = """
         {
-          "formatVersion": 99,
+          "formatVersion": 1,
           "exportedAt": "2027-01-15T08:00:00Z",
           "items": []
         }
         """
 
-        #expect(throws: CountpaneTransferError.unsupportedFormat(99)) {
+        #expect(throws: CountpaneTransferError.unsupportedFormat(1)) {
             _ = try CountpaneJSONTransfer.decode(Data(json.utf8))
         }
     }
