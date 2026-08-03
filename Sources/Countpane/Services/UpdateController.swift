@@ -173,10 +173,12 @@ final class UpdateController {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.createsNewApplicationInstance = true
         NSWorkspace.shared.openApplication(at: Bundle.main.bundleURL, configuration: configuration) { _, error in
-            if let error {
-                Task { @MainActor in self.status = .failed(error.localizedDescription) }
-            } else {
-                NSApp.terminate(nil)
+            Task { @MainActor in
+                if let error {
+                    self.status = .failed(error.localizedDescription)
+                } else {
+                    NSApp.terminate(nil)
+                }
             }
         }
     }
