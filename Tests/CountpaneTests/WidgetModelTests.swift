@@ -9,7 +9,7 @@ struct DesktopWidgetModelTests {
     func visibleItems() async {
         let directory = FileManager.default.temporaryDirectory.appending(path: "WidgetModel-\(UUID().uuidString)", directoryHint: .isDirectory)
         defer { try? FileManager.default.removeItem(at: directory) }
-        let model = AppModel(repository: CountdownRepository(fileURL: directory.appending(path: "countpane.json")))
+        let model = AppModel(repository: CountdownRepository(fileURL: directory.appending(path: "countpane.sqlite3")))
         let visible = CountdownItem(title: "Visible", targetDate: .now)
         var hidden = CountdownItem(title: "Hidden", targetDate: .now)
         hidden.isWidgetVisible = false
@@ -26,7 +26,7 @@ struct DesktopWidgetModelTests {
     func mutations() async {
         let directory = FileManager.default.temporaryDirectory.appending(path: "WidgetMutation-\(UUID().uuidString)", directoryHint: .isDirectory)
         defer { try? FileManager.default.removeItem(at: directory) }
-        let model = AppModel(repository: CountdownRepository(fileURL: directory.appending(path: "countpane.json")))
+        let model = AppModel(repository: CountdownRepository(fileURL: directory.appending(path: "countpane.sqlite3")))
         let item = CountdownItem(title: "Trip", targetDate: .now)
         model.add(item)
         model.setWidgetVisible(item, false)

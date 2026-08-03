@@ -74,7 +74,7 @@ struct JSONTransferTests {
     func replaceAll() async throws {
         let directory = FileManager.default.temporaryDirectory
             .appending(path: "CountpaneImportTests-\(UUID().uuidString)", directoryHint: .isDirectory)
-        let location = directory.appending(path: "countpane.json")
+        let location = directory.appending(path: "countpane.sqlite3")
         defer { try? FileManager.default.removeItem(at: directory) }
 
         let repository = CountdownRepository(fileURL: location)

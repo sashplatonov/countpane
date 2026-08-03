@@ -11,7 +11,7 @@ struct ReviewRegressionTests {
         defer { try? FileManager.default.removeItem(at: root) }
         let file = root
             .appending(path: "Nested", directoryHint: .isDirectory)
-            .appending(path: "countpane.json")
+            .appending(path: "countpane.sqlite3")
         let repository = CountdownRepository(fileURL: file)
         let item = CountdownItem(title: "Created", targetDate: .now)
 

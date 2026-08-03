@@ -92,7 +92,7 @@ struct AppModelReviewRegressionTests {
             .appending(path: "CountpaneBlockedSave-\(UUID().uuidString)", directoryHint: .isDirectory)
         defer { try? FileManager.default.removeItem(at: directory) }
         try Data("blocking-file".utf8).write(to: directory)
-        let url = directory.appending(path: "countpane.json")
+        let url = directory.appending(path: "countpane.sqlite3")
         let model = AppModel(repository: CountdownRepository(fileURL: url))
         await model.load()
         let countdown = CountdownItem(title: "Unsaved", targetDate: .now)
@@ -145,7 +145,7 @@ struct AppModelReviewRegressionTests {
         let directory = FileManager.default.temporaryDirectory
             .appending(path: "CountdownsReviewTests-\(UUID().uuidString)", directoryHint: .isDirectory)
         try! FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        return directory.appending(path: "countpane.json")
+        return directory.appending(path: "countpane.sqlite3")
     }
 }
 

@@ -62,6 +62,6 @@ struct UndoAndNextTests {
         let directory = FileManager.default.temporaryDirectory
             .appending(path: "CountdownsUndoTests-\(UUID().uuidString)", directoryHint: .isDirectory)
         try! FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        return directory.appending(path: "countpane.json")
+        return directory.appending(path: "countpane.sqlite3")
     }
 }

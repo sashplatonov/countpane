@@ -86,12 +86,12 @@ Calendars are excellent for appointments. Countpane is for the dates you want to
 Your countdowns stay on your Mac at:
 
 ```text
-~/Library/Application Support/Countpane/countpane.json
+~/Library/Application Support/Countpane/countpane.sqlite3
 ```
 
 Countpane has no account or analytics service. Automatic update checks are optional; they query the public GitHub Releases API and send only the product version. Titles, dates, notes, and backup files are never transmitted.
 
-Backups use Countpane's current versioned JSON format. Import checks the format, duplicate identifiers, required titles, and urgency settings before replacing the local list. Unsupported or older backup formats are rejected rather than changed silently.
+Runtime state is stored in a local SQLite database. Backups use Countpane's current versioned JSON interchange format. Import checks the format, duplicate identifiers, required titles, and urgency settings before replacing the local list. Unsupported backup formats are rejected rather than changed silently.
 
 📝 Keep exported backups somewhere you control, such as an encrypted drive or your own private cloud folder.
 

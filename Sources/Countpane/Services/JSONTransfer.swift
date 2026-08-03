@@ -96,3 +96,20 @@ struct CountpaneBackupFile: FileDocument {
         FileWrapper(regularFileWithContents: data)
     }
 }
+
+extension JSONEncoder {
+    static var configured: JSONEncoder {
+        let value = JSONEncoder()
+        value.outputFormatting = [.prettyPrinted, .sortedKeys]
+        value.dateEncodingStrategy = .deferredToDate
+        return value
+    }
+}
+
+extension JSONDecoder {
+    static var configured: JSONDecoder {
+        let value = JSONDecoder()
+        value.dateDecodingStrategy = .deferredToDate
+        return value
+    }
+}
