@@ -11,11 +11,16 @@
 ## Application smoke test
 
 - [ ] Countpane launches from `/Applications`.
+- [ ] Countpane shows a calendar icon in the macOS menu bar and no Dock tile.
+- [ ] The menu-bar menu exposes **Show Main Window** and **Quit Countpane** with keyboard-accessible labels.
+- [ ] **Show Main Window** opens or reopens the existing management window without duplicating desktop widgets.
 - [ ] A countdown can be created, edited, completed, restored, and deleted.
 - [ ] Title receives initial keyboard focus in the editor.
+- [ ] Keyboard input remains reliable after reopening the management window, and no Dock tile appears.
 - [ ] Desktop widgets open, remain above normal windows, move, and restore their positions.
 - [ ] Closing the management window keeps enabled widgets running.
 - [ ] Quitting immediately after an edit preserves the latest change.
+- [ ] Choosing **Quit Countpane** removes the menu-bar icon; relaunching shows the edited countdown still present.
 - [ ] Launch at Login starts enabled widgets without showing the management window.
 - [ ] About displays the semantic product version and generated build timestamp.
 - [ ] JSON export/import round trip preserves active and completed countdowns.

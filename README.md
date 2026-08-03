@@ -4,7 +4,7 @@
 
 **Keep the dates that matter visible, without filling your calendar.**
 
-Countpane is a private, native Mac app for deadlines, anniversaries, trips, launches, and every other date you do not want to lose track of. Create a countdown once, then keep it on your desktop as a small, always-visible widget while you work.
+Countpane is a private, native Mac app for deadlines, anniversaries, trips, launches, and every other date you do not want to lose track of. It lives in the macOS menu bar, where its calendar icon opens the management window; create a countdown once, then keep it on your desktop as a small, always-visible widget while you work.
 
 <a id="table-of-contents"></a>
 
@@ -35,7 +35,7 @@ Or install the fully qualified cask in one line:
 brew install --cask sashplatonov/apps/countpane
 ```
 
-Then open **Countpane** from Applications. To update later:
+Then open **Countpane** from Applications. Countpane stays in the menu bar instead of the Dock; click its calendar icon whenever you want to reopen the management window. To update later:
 
 ```bash
 brew update
@@ -72,11 +72,12 @@ Calendars are excellent for appointments. Countpane is for the dates you want to
 
 ## 🚀 Get started
 
-1. Open Countpane and select **Add Countdown**.
-2. Give it a title and target date; add a note, symbol, or colour if helpful.
-3. Enable its desktop widget to keep the countdown visible above other windows.
-4. In Settings, adjust urgency stages, appearance, Launch at Login, and automatic update checks.
-5. Use **Export** in Settings before changing Macs or making a major edit to your list.
+1. Click the Countpane calendar icon in the menu bar and choose **Show Main Window**.
+2. Select **Add Countdown**.
+3. Give it a title and target date; add a note, symbol, or colour if helpful.
+4. Enable its desktop widget to keep the countdown visible above other windows.
+5. In Settings, adjust urgency stages, appearance, Launch at Login, and automatic update checks.
+6. Use **Export** in Settings before changing Macs or making a major edit to your list.
 
 [↑ Back to top](#top)
 
