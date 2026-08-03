@@ -1,6 +1,11 @@
 import Foundation
 
-actor CountdownRepository {
+protocol CountdownStoring: Sendable {
+    func load() async throws -> [CountdownItem]
+    func save(_ items: [CountdownItem]) async throws
+}
+
+actor CountdownRepository: CountdownStoring {
     private let fileURL: URL
     private let fileManager: FileManager
 

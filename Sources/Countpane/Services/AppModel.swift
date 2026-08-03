@@ -40,12 +40,12 @@ final class AppModel {
     var searchText = ""
     var sortMode: SortMode = .date
 
-    @ObservationIgnored private let repository: CountdownRepository
-    @ObservationIgnored private var loadTask: Task<[CountdownItem], Error>?
+    @ObservationIgnored private let repository: any CountdownStoring
+    @ObservationIgnored private var loadTask: Task<Void, Never>?
     @ObservationIgnored private var saveTask: Task<Void, Never>?
     @ObservationIgnored private var undoExpiryTask: Task<Void, Never>?
 
-    init(repository: CountdownRepository = CountdownRepository()) { self.repository = repository }
+    init(repository: any CountdownStoring = CountdownRepository()) { self.repository = repository }
 
     var visibleWidgetItems: [CountdownItem] {
         items.filter { !$0.isCompleted && $0.isWidgetVisible }
@@ -112,22 +112,27 @@ final class AppModel {
 
     func load() async {
         guard !isLoaded else { return }
-
-        let task: Task<[CountdownItem], Error>
         if let loadTask {
-            task = loadTask
-        } else {
-            task = Task { [repository] in try await repository.load() }
-            loadTask = task
+            await loadTask.value
+            return
         }
 
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.performInitialLoad()
+        }
+        loadTask = task
+        await task.value
+        loadTask = nil
+    }
+
+    private func performInitialLoad() async {
         do {
-            items = try await task.value
+            items = try await repository.load()
         } catch {
             didFailToLoad = true
             persistenceError = error.localizedDescription
         }
-        loadTask = nil
         isLoaded = true
     }
 

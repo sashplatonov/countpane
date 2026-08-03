@@ -41,6 +41,33 @@ struct AppModelReviewRegressionTests {
         #expect(reopenedModel.items == [countdown])
     }
 
+    @Test("Concurrent load callers apply the stored snapshot only once")
+    func concurrentLoadsCannotOverwriteNewCountdown() async {
+        let existing = CountdownItem(
+            title: "Existing",
+            targetDate: Date(timeIntervalSince1970: 1_800_000_000)
+        )
+        let created = CountdownItem(
+            title: "Created after load",
+            targetDate: Date(timeIntervalSince1970: 1_810_000_000)
+        )
+        let store = SuspendedCountdownStore(items: [existing])
+        let model = AppModel(repository: store)
+
+        let primaryLoad = Task(priority: .high) { await model.load() }
+        await store.waitUntilLoadStarts()
+        let concurrentLoad = Task(priority: .background) { await model.load() }
+        await Task.yield()
+        await store.resumeLoad()
+
+        await primaryLoad.value
+        model.add(created)
+        await concurrentLoad.value
+
+        #expect(model.items == [existing, created])
+        #expect(await store.loadCount == 1)
+    }
+
     @Test("Termination waits for the initial load before saving")
     func terminationBeforeInitialLoadPreservesData() async throws {
         let url = temporaryFileURL()
@@ -119,5 +146,40 @@ struct AppModelReviewRegressionTests {
             .appending(path: "CountdownsReviewTests-\(UUID().uuidString)", directoryHint: .isDirectory)
         try! FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         return directory.appending(path: "countpane.json")
+    }
+}
+
+private actor SuspendedCountdownStore: CountdownStoring {
+    private let items: [CountdownItem]
+    private var loadContinuation: CheckedContinuation<Void, Never>?
+    private var startWaiters: [CheckedContinuation<Void, Never>] = []
+    private(set) var loadCount = 0
+
+    init(items: [CountdownItem]) {
+        self.items = items
+    }
+
+    func load() async throws -> [CountdownItem] {
+        loadCount += 1
+        startWaiters.forEach { $0.resume() }
+        startWaiters.removeAll()
+        await withCheckedContinuation { continuation in
+            loadContinuation = continuation
+        }
+        return items
+    }
+
+    func save(_ items: [CountdownItem]) async throws {}
+
+    func waitUntilLoadStarts() async {
+        guard loadCount == 0 else { return }
+        await withCheckedContinuation { continuation in
+            startWaiters.append(continuation)
+        }
+    }
+
+    func resumeLoad() {
+        loadContinuation?.resume()
+        loadContinuation = nil
     }
 }
