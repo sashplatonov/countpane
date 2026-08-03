@@ -26,7 +26,7 @@ protocol ProcessExecuting: Sendable {
 
 struct SafeProcessRunner: ProcessExecuting {
     func run(executable: URL, arguments: [String], timeout: TimeInterval = 180) async throws -> ProcessResult {
-        try await Task.detached(priority: .userInitiated) {
+        let worker = Task.detached(priority: .userInitiated) {
             let outputURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent("countpane-process-\(UUID().uuidString).log")
             _ = FileManager.default.createFile(atPath: outputURL.path, contents: nil)
@@ -68,7 +68,13 @@ struct SafeProcessRunner: ProcessExecuting {
 
             let data = (try? Data(contentsOf: outputURL)) ?? Data()
             return ProcessResult(status: process.terminationStatus, output: String(decoding: data, as: UTF8.self))
-        }.value
+        }
+
+        return try await withTaskCancellationHandler {
+            try await worker.value
+        } onCancel: {
+            worker.cancel()
+        }
     }
 }
 
@@ -204,4 +210,3 @@ enum UpdateServiceError: LocalizedError {
         }
     }
 }
-

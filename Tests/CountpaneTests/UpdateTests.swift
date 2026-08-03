@@ -138,9 +138,10 @@ struct UpdateTests {
     @MainActor
     func concurrentChecksAreCoalesced() async {
         let releaseCalls = CallCounter()
+        let detectionCalls = CallCounter()
         let controller = UpdateController(
             releaseClient: CountingReleaseClient(counter: releaseCalls),
-            channelDetector: FixedChannelDetector(channel: .development),
+            channelDetector: CountingChannelDetector(counter: detectionCalls),
             homebrewUpdater: FakeHomebrewUpdater(result: .success("")),
             defaults: isolatedDefaults(),
             currentVersion: { "1.0.0" }
@@ -153,6 +154,67 @@ struct UpdateTests {
         await second.value
 
         #expect(releaseCalls.value == 1)
+        #expect(detectionCalls.value == 1)
+    }
+
+    @Test("Manual checks bypass the automatic launch throttle")
+    @MainActor
+    func manualCheckBypassesAutomaticThrottle() async {
+        let defaults = isolatedDefaults()
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+        defaults.set(now, forKey: "update.lastSuccessfulCheck")
+        let releaseCalls = CallCounter()
+        let controller = UpdateController(
+            releaseClient: CountingReleaseClient(counter: releaseCalls),
+            channelDetector: FixedChannelDetector(channel: .development),
+            homebrewUpdater: FakeHomebrewUpdater(result: .success("")),
+            defaults: defaults,
+            now: { now },
+            currentVersion: { "1.0.0" }
+        )
+
+        await controller.checkForUpdates(userInitiated: false)
+        await controller.checkForUpdates(userInitiated: true)
+
+        #expect(releaseCalls.value == 1)
+    }
+
+    @Test("Queued automatic checks re-check the opt-out before starting")
+    @MainActor
+    func automaticCheckHonorsOptOutAtExecution() async {
+        let defaults = isolatedDefaults()
+        let releaseCalls = CallCounter()
+        let controller = UpdateController(
+            releaseClient: CountingReleaseClient(counter: releaseCalls),
+            channelDetector: CountingChannelDetector(counter: CallCounter()),
+            homebrewUpdater: FakeHomebrewUpdater(result: .success("")),
+            defaults: defaults
+        )
+
+        let queuedCheck = Task { await controller.checkForUpdates(userInitiated: false) }
+        controller.setAutomaticChecksEnabled(false)
+        await queuedCheck.value
+
+        #expect(releaseCalls.value == 0)
+    }
+
+    @Test("Disabling automatic checks cancels an in-flight request")
+    @MainActor
+    func disablingAutomaticChecksCancelsRequest() async {
+        let releaseClient = CancellationAwareReleaseClient()
+        let controller = UpdateController(
+            releaseClient: releaseClient,
+            channelDetector: FixedChannelDetector(channel: .development),
+            homebrewUpdater: FakeHomebrewUpdater(result: .success("")),
+            defaults: isolatedDefaults()
+        )
+
+        controller.startAutomaticChecks()
+        await releaseClient.waitUntilStarted()
+        controller.setAutomaticChecksEnabled(false)
+        await releaseClient.waitUntilCancelled()
+
+        #expect(controller.status == .idle)
     }
 
     @Test("Homebrew update failures become user-facing states")
@@ -221,6 +283,34 @@ private struct CountingChannelDetector: InstallationChannelDetecting {
     }
 }
 
+private actor CancellationAwareReleaseClient: ReleaseChecking {
+    private var started = false
+    private var cancelled = false
+
+    func latestRelease() async throws -> GitHubRelease {
+        started = true
+        do {
+            try await Task.sleep(for: .seconds(5))
+        } catch {
+            cancelled = true
+            throw error
+        }
+        return release("v1.0.0")
+    }
+
+    func waitUntilStarted() async {
+        while !started {
+            await Task.yield()
+        }
+    }
+
+    func waitUntilCancelled() async {
+        while !cancelled {
+            await Task.yield()
+        }
+    }
+}
+
 private struct FakeHomebrewUpdater: HomebrewUpdating, @unchecked Sendable {
     let result: Result<String, Error>
     func installUpdate() async throws -> String { try result.get() }
@@ -259,6 +349,25 @@ struct SafeProcessExecutionTests {
                 arguments: ["2"],
                 timeout: 0.05
             )
+        }
+    }
+
+    @Test("Cancelling the caller terminates the detached process worker")
+    func cancellation() async {
+        let runner = SafeProcessRunner()
+        let task = Task {
+            try await runner.run(
+                executable: URL(fileURLWithPath: "/bin/sleep"),
+                arguments: ["5"],
+                timeout: 10
+            )
+        }
+
+        try? await Task.sleep(for: .milliseconds(100))
+        task.cancel()
+
+        await #expect(throws: ProcessRunnerError.cancelled) {
+            _ = try await task.value
         }
     }
 }

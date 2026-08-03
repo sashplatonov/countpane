@@ -38,6 +38,7 @@ struct CountpaneApp: App {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var terminationSaveInProgress = false
+    private var pendingInitialLoadTermination = false
     func applicationWillFinishLaunching(_ notification: Notification) {
         installApplicationIcon()
 
@@ -91,13 +92,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        guard AppModel.shared.isLoaded else {
+            scheduleTerminationAfterInitialLoad()
+            return false
+        }
+
         // Keep the app alive when countdown widgets are being used without the
         // management window. Once the initial load is complete, an empty
         // widget set has no user-visible reason to keep a background process.
-        AppLifetimePolicy.shouldTerminateAfterLastWindowClosed(
+        return AppLifetimePolicy.shouldTerminateAfterLastWindowClosed(
             isModelLoaded: AppModel.shared.isLoaded,
             visibleWidgetCount: AppModel.shared.visibleWidgetItems.count
         )
+    }
+
+    private func scheduleTerminationAfterInitialLoad() {
+        pendingInitialLoadTermination = true
+        Task { @MainActor [weak self] in
+            await AppModel.shared.load()
+            guard let self else { return }
+            let shouldTerminate = AppLifetimePolicy.shouldTerminateAfterInitialLoad(
+                hasPendingLastWindowClose: self.pendingInitialLoadTermination,
+                visibleWindowCount: NSApp.windows.count(where: \.isVisible),
+                visibleWidgetCount: AppModel.shared.visibleWidgetItems.count
+            )
+            self.pendingInitialLoadTermination = false
+            if shouldTerminate {
+                NSApp.terminate(nil)
+            }
+        }
     }
 }
 

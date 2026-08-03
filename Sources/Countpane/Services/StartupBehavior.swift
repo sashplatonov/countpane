@@ -22,6 +22,14 @@ enum AppLifetimePolicy {
     ) -> Bool {
         isModelLoaded && visibleWidgetCount == 0
     }
+
+    static func shouldTerminateAfterInitialLoad(
+        hasPendingLastWindowClose: Bool,
+        visibleWindowCount: Int,
+        visibleWidgetCount: Int
+    ) -> Bool {
+        hasPendingLastWindowClose && visibleWindowCount == 0 && visibleWidgetCount == 0
+    }
 }
 
 @MainActor

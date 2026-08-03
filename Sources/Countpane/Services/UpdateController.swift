@@ -5,6 +5,11 @@ import Observation
 @MainActor
 @Observable
 final class UpdateController {
+    private enum CheckOrigin: Equatable {
+        case automatic
+        case userInitiated
+    }
+
     static let shared = UpdateController()
 
     private(set) var status: UpdateStatus = .idle
@@ -14,6 +19,7 @@ final class UpdateController {
 
     private var automaticTimer: Timer?
     private var checkTask: Task<Void, Never>?
+    private var checkOrigin: CheckOrigin?
     private let releaseClient: any ReleaseChecking
     private let channelDetector: any InstallationChannelDetecting
     private let homebrewUpdater: any HomebrewUpdating
@@ -93,6 +99,7 @@ final class UpdateController {
             startAutomaticChecks()
         } else {
             stopAutomaticChecks()
+            cancelAutomaticCheck()
             if case .idle = status { status = .idle }
         }
     }
@@ -115,6 +122,11 @@ final class UpdateController {
         automaticTimer = nil
     }
 
+    private func cancelAutomaticCheck() {
+        guard checkOrigin == .automatic else { return }
+        checkTask?.cancel()
+    }
+
     func performPrimaryAction() {
         switch status {
         case .available:
@@ -131,35 +143,53 @@ final class UpdateController {
     }
 
     func checkForUpdates(userInitiated: Bool) async {
+        guard userInitiated || automaticChecksEnabled else { return }
+        if !userInitiated,
+           let lastCheck = defaults.object(forKey: Self.lastCheckKey) as? Date,
+           now().timeIntervalSince(lastCheck) < Self.minimumLaunchCheckInterval {
+            return
+        }
         if let checkTask {
+            if userInitiated, checkOrigin == .automatic {
+                checkTask.cancel()
+                await checkTask.value
+                await checkForUpdates(userInitiated: true)
+                return
+            }
             await checkTask.value
             return
         }
 
+        let origin: CheckOrigin = userInitiated ? .userInitiated : .automatic
         let task = Task { @MainActor [weak self] in
             guard let self else { return }
             await self.performCheckForUpdates(userInitiated: userInitiated)
         }
         checkTask = task
+        checkOrigin = origin
         await task.value
     }
 
     private func performCheckForUpdates(userInitiated: Bool) async {
-        let currentTime = now()
-        if !userInitiated,
-           let lastCheck = defaults.object(forKey: Self.lastCheckKey) as? Date,
-           currentTime.timeIntervalSince(lastCheck) < Self.minimumLaunchCheckInterval {
+        defer {
             checkTask = nil
-            return
+            checkOrigin = nil
         }
-
-        defer { checkTask = nil }
+        guard userInitiated || automaticChecksEnabled else { return }
         status = .checking
         if installationChannel == .unknown {
             installationChannel = await channelDetector.detect()
         }
+        guard !Task.isCancelled else {
+            status = .idle
+            return
+        }
         do {
             let release = try await releaseClient.latestRelease()
+            guard !Task.isCancelled else {
+                status = .idle
+                return
+            }
             guard let latestVersion = release.semanticVersion else {
                 throw UpdateServiceError.invalidReleaseTag(release.tagName)
             }
@@ -173,6 +203,8 @@ final class UpdateController {
             status = currentVersion < latestVersion
                 ? .available(version: latestVersion.description)
                 : .current(lastChecked: checkedAt)
+        } catch is CancellationError {
+            status = .idle
         } catch {
             status = .failed((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)
         }

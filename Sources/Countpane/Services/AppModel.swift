@@ -66,10 +66,17 @@ final class AppModel {
     }
 
     func nextItem(at date: Date = .now) -> CountdownItem? {
-        nextItem(from: activeItems(at: date), at: date)
+        nextItem(
+            from: filtered(items.filter { !$0.isCompleted }),
+            at: date
+        )
     }
 
-    func dashboardSnapshot(at date: Date = .now, filter: CountdownFilter = .all) -> DashboardSnapshot {
+    func dashboardSnapshot(
+        at date: Date = .now,
+        filter: CountdownFilter = .all,
+        includesCompletedItems: Bool
+    ) -> DashboardSnapshot {
         let active = activeItems(at: date)
         let filteredActive = active.filter { item in
             switch filter {
@@ -82,7 +89,7 @@ final class AppModel {
         return DashboardSnapshot(
             activeItems: active,
             filteredActiveItems: filteredActive,
-            completedItems: completedItems,
+            completedItems: includesCompletedItems ? completedItems : [],
             nextItem: nextItem(from: active, at: date),
             referenceDate: date
         )

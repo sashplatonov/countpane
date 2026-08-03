@@ -19,7 +19,11 @@ struct RootView: View {
         @Bindable var model = model
 
         TimelineView(.periodic(from: .now, by: 3600)) { context in
-            let snapshot = model.dashboardSnapshot(at: context.date, filter: filter)
+            let snapshot = model.dashboardSnapshot(
+                at: context.date,
+                filter: filter,
+                includesCompletedItems: selection == .completed
+            )
             HStack(spacing: 0) {
                 sidebar(snapshot: snapshot)
                 Divider().opacity(0.35)
