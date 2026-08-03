@@ -56,4 +56,3 @@ The release gate must include CPU time/wakeups, energy impact, resident memory a
 | --- | --- | --- | ---: | --- | --- | --- | --- | --- |
 | Baseline to be recorded | `arm64` | To record | 3 | To record | To record | To record | To record | Use synthetic fixture |
 | Baseline to be recorded | `x86_64` | To record | 3 | To record | To record | To record | To record | Use Intel hardware or document follow-up |
-
