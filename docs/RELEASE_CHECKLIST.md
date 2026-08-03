@@ -5,7 +5,7 @@
 - [ ] GitHub Actions CI is green on the release commit for both `arm64` and `x86_64`.
 - [ ] The release tag uses semantic versioning, for example `v1.2.0`.
 - [ ] The release workflow is triggered by an existing immutable tag.
-- [ ] DMG, SHA-256 file, and Homebrew Cask are attached to the release.
+- [ ] Native arm64 and x86_64 DMGs, both SHA-256 files, and the Homebrew Cask are attached to the release.
 - [ ] Third-party Actions remain pinned to reviewed commit SHAs.
 
 ## Application smoke test
@@ -27,6 +27,10 @@
 
 ## Resource and battery verification
 
+- [ ] The size report records the app, executable, each resource, and DMG bytes for both architectures.
+- [ ] The accepted budgets are respected: Universal app <= 9,000,000 bytes, native app <= 5,400,000 bytes, native executable <= 3,600,000 bytes, and native DMG <= 3,000,000 bytes.
+- [ ] `dist/Countpane.dSYM` or the matching native dSYM remains external to the `.app` and DMG, and its UUIDs match the final executable.
+- [ ] The packaged app contains exactly one `Contents/Resources/AppIcon.icns`, no `AppIcon.png`, and no SwiftPM resource bundle.
 - [ ] The release candidate was measured on AC and battery power; the recorded protocol and results accompany the release review.
 - [ ] Raw Instruments traces remain outside the repository and contain no personal countdown data.
 - [ ] With no desktop widgets, closing the final management window leaves Countpane available from the menu bar; **Quit Countpane** ends the process cleanly.
@@ -53,9 +57,11 @@
 - [ ] `brew upgrade --cask countpane` upgrades an older installation.
 - [ ] `brew uninstall --cask countpane` removes the application cleanly.
 
-## Universal Binary
+## Architecture artifacts
 
-- [ ] `lipo -archs dist/Countpane.app/Contents/MacOS/Countpane` reports both `arm64` and `x86_64`.
-- [ ] The same DMG launches on an Apple Silicon Mac.
-- [ ] The same DMG launches on a supported Intel Mac or Intel macOS test environment.
-- [ ] `codesign -d --entitlements :- dist/Countpane.app` reports the expected entitlements.
+- [ ] `lipo -archs dist/Countpane-arm64.app/Contents/MacOS/Countpane` reports only `arm64`.
+- [ ] `lipo -archs dist/Countpane-x86_64.app/Contents/MacOS/Countpane` reports only `x86_64`.
+- [ ] The arm64 DMG launches on an Apple Silicon Mac and the x86_64 DMG launches on a supported Intel macOS test environment.
+- [ ] Homebrew selects the matching native URL and checksum on both CPU architectures.
+- [ ] `codesign -d --entitlements :-` reports the expected entitlements for both native apps.
+- [ ] The Universal CI app remains launchable and reports both architectures as a compatibility check.

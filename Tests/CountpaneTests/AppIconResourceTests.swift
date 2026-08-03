@@ -11,7 +11,7 @@ struct AppIconResourceTests {
         let resourcesURL = appURL
             .appending(path: "Contents", directoryHint: .isDirectory)
             .appending(path: "Resources", directoryHint: .isDirectory)
-        let iconURL = resourcesURL.appending(path: "AppIcon.png")
+        let iconURL = resourcesURL.appending(path: "AppIcon.icns")
         defer { try? FileManager.default.removeItem(at: appURL) }
 
         try FileManager.default.createDirectory(at: resourcesURL, withIntermediateDirectories: true)

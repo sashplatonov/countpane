@@ -6,6 +6,7 @@ dist/
 *.xcuserstate
 
 .build-universal/
+.build-universal.*
 
 # Local editor settings
 .vscode/

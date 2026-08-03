@@ -123,11 +123,18 @@ Build a local DMG:
 ./Scripts/build-dmg.sh 1.0.0
 ```
 
+Build a native local DMG when testing a specific Mac architecture:
+
+```bash
+./Scripts/build-dmg.sh 1.0.0 arm64
+./Scripts/build-dmg.sh 1.0.0 x86_64
+```
+
 [↑ Back to top](#top)
 
 ## ✅ Releases and quality
 
-GitHub Actions runs the test suite natively on Apple Silicon and Intel Macs. A semantic tag such as `v1.0.0` builds a Universal app, creates a DMG and checksum, publishes a GitHub Release, and generates the Homebrew cask.
+GitHub Actions runs the test suite natively on Apple Silicon and Intel Macs. A semantic tag such as `v1.0.0` builds signed native arm64 and x86_64 DMGs and checksums, publishes both to a GitHub Release, and generates an architecture-aware Homebrew cask. CI also keeps a Universal app build as a compatibility check.
 
 ```bash
 git tag v1.0.0

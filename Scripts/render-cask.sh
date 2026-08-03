@@ -1,22 +1,28 @@
 #!/bin/bash
 set -euo pipefail
 
-if (( $# != 4 )); then
-    echo "Usage: $0 <version> <sha256> <github-repository> <output-file>" >&2
+if (( $# != 5 )); then
+    echo "Usage: $0 <version> <arm64-sha256> <x86_64-sha256> <github-repository> <output-file>" >&2
     exit 64
 fi
 
 VERSION="$1"
-SHA256="$2"
-REPOSITORY="$3"
-OUTPUT="$4"
+ARM_SHA256="$2"
+INTEL_SHA256="$3"
+REPOSITORY="$4"
+OUTPUT="$5"
 mkdir -p "$(dirname "$OUTPUT")"
 cat > "$OUTPUT" <<CASK
 cask "countpane" do
   version "${VERSION}"
-  sha256 "${SHA256}"
 
-  url "https://github.com/${REPOSITORY}/releases/download/v#{version}/Countpane-#{version}.dmg"
+  if Hardware::CPU.arm?
+    url "https://github.com/${REPOSITORY}/releases/download/v#{version}/Countpane-#{version}-arm64.dmg"
+    sha256 "${ARM_SHA256}"
+  else
+    url "https://github.com/${REPOSITORY}/releases/download/v#{version}/Countpane-#{version}-x86_64.dmg"
+    sha256 "${INTEL_SHA256}"
+  end
   name "Countpane"
   desc "Native countdown manager with always-on-top desktop widgets"
   homepage "https://github.com/${REPOSITORY}"

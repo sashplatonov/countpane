@@ -60,8 +60,16 @@ jobs:
           echo "Architectures: $ARCHS"
           [[ " $ARCHS " == *" arm64 "* ]]
           [[ " $ARCHS " == *" x86_64 "* ]]
-          test -f dist/Countpane.app/Contents/Resources/AppIcon.png
+          test -f dist/Countpane.app/Contents/Resources/AppIcon.icns
+          test ! -e dist/Countpane.app/Contents/Resources/AppIcon.png
+          test ! -e dist/Countpane.app/Contents/Resources/Countpane_Countpane.bundle
           codesign --verify --deep --strict --verbose=2 dist/Countpane.app
+          test -f dist/Countpane.dSYM/Contents/Resources/DWARF/Countpane
+          xcrun dwarfdump --uuid dist/Countpane.app/Contents/MacOS/Countpane
+          xcrun dwarfdump --uuid dist/Countpane.dSYM
+
+      - name: Measure application size
+        run: ./Scripts/measure-distribution-size.sh --max-application-bytes 9000000 --max-executable-bytes 7200000 dist/Countpane.app
 
       - name: Upload app bundle
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -69,3 +77,34 @@ jobs:
           name: Countpane-universal-app
           path: dist/Countpane.app
           if-no-files-found: error
+
+  native-packaging:
+    name: Native ${{ matrix.architecture }} package
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            architecture: arm64
+          - runner: macos-15-intel
+            architecture: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build native DMG
+        run: ./Scripts/build-dmg.sh 0.0.0-ci "${{ matrix.architecture }}"
+
+      - name: Verify native package
+        shell: bash
+        run: |
+          APP="dist/Countpane-${{ matrix.architecture }}.app"
+          DMG="dist/Countpane-0.0.0-ci-${{ matrix.architecture }}.dmg"
+          [[ "$(lipo -archs "$APP/Contents/MacOS/Countpane")" == "${{ matrix.architecture }}" ]]
+          test -f "$APP/Contents/Resources/AppIcon.icns"
+          test ! -e "$APP/Contents/Resources/AppIcon.png"
+          test ! -e "$APP/Contents/Resources/Countpane_Countpane.bundle"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          ./Scripts/measure-distribution-size.sh --architecture "${{ matrix.architecture }}" --max-application-bytes 5400000 --max-executable-bytes 3600000 --max-dmg-bytes 3000000 "$APP" "$DMG"
+          hdiutil verify "$DMG"

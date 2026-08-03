@@ -14,11 +14,9 @@ enum AppIconResource {
         let fileManager = FileManager.default
         let executableDirectory = bundleURL.deletingLastPathComponent()
         let candidates = [
-            resourceURL?.appendingPathComponent("AppIcon.png"),
-            bundleURL.appendingPathComponent("Contents/Resources/AppIcon.png"),
-            bundleURL.appendingPathComponent("Contents/Resources/Countpane_Countpane.bundle/AppIcon.png"),
-            bundleURL.appendingPathComponent("Countpane_Countpane.bundle/AppIcon.png"),
-            executableDirectory.appendingPathComponent("Countpane_Countpane.bundle/AppIcon.png")
+            resourceURL?.appendingPathComponent("AppIcon.icns"),
+            bundleURL.appendingPathComponent("Contents/Resources/AppIcon.icns"),
+            executableDirectory.appendingPathComponent("Resources/AppIcon.icns")
         ]
 
         return candidates.compactMap { $0 }.first(where: { fileManager.fileExists(atPath: $0.path) })

@@ -57,38 +57,55 @@ jobs:
           bash -n Scripts/*.sh
           plutil -lint Packaging/Info.plist Packaging/Countpane.entitlements
 
-      - name: Build DMG
+      - name: Build native DMGs
         env:
           BUILD_NUMBER: ${{ github.run_number }}
-        run: ./Scripts/build-dmg.sh "${{ steps.version.outputs.version }}"
+        run: |
+          ./Scripts/build-dmg.sh "${{ steps.version.outputs.version }}" arm64
+          ./Scripts/build-dmg.sh "${{ steps.version.outputs.version }}" x86_64
 
-      - name: Verify Universal Binary and signature
+      - name: Verify native binaries and signatures
         shell: bash
         run: |
-          ARCHS="$(lipo -archs dist/Countpane.app/Contents/MacOS/Countpane)"
-          echo "Architectures: $ARCHS"
-          [[ " $ARCHS " == *" arm64 "* ]]
-          [[ " $ARCHS " == *" x86_64 "* ]]
-          test -f dist/Countpane.app/Contents/Resources/AppIcon.png
-          codesign --verify --deep --strict --verbose=2 dist/Countpane.app
+          for ARCH in arm64 x86_64; do
+            APP="dist/Countpane-${ARCH}.app"
+            ARCHS="$(lipo -archs "$APP/Contents/MacOS/Countpane")"
+            echo "$ARCH architectures: $ARCHS"
+            [[ "$ARCHS" == "$ARCH" ]]
+            test -f "$APP/Contents/Resources/AppIcon.icns"
+            test ! -e "$APP/Contents/Resources/AppIcon.png"
+            test ! -e "$APP/Contents/Resources/Countpane_Countpane.bundle"
+            codesign --verify --deep --strict --verbose=2 "$APP"
+            test -f "dist/Countpane-${ARCH}.dSYM/Contents/Resources/DWARF/Countpane"
+            xcrun dwarfdump --uuid "$APP/Contents/MacOS/Countpane"
+            xcrun dwarfdump --uuid "dist/Countpane-${ARCH}.dSYM"
+          done
+
+      - name: Measure release size
+        run: |
+          ./Scripts/measure-distribution-size.sh --architecture arm64 --max-application-bytes 5400000 --max-executable-bytes 3600000 --max-dmg-bytes 3000000 "dist/Countpane-arm64.app" "dist/Countpane-${{ steps.version.outputs.version }}-arm64.dmg"
+          ./Scripts/measure-distribution-size.sh --architecture x86_64 --max-application-bytes 5400000 --max-executable-bytes 3600000 --max-dmg-bytes 3000000 "dist/Countpane-x86_64.app" "dist/Countpane-${{ steps.version.outputs.version }}-x86_64.dmg"
 
       - name: Render Homebrew cask
         id: cask
         shell: bash
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          DMG="dist/Countpane-${VERSION}.dmg"
-          SHA256="$(shasum -a 256 "$DMG" | awk '{print $1}')"
-          ./Scripts/render-cask.sh "$VERSION" "$SHA256" "$GITHUB_REPOSITORY" "dist/countpane.rb"
-          echo "sha256=${SHA256}" >> "$GITHUB_OUTPUT"
+          ARM_DMG="dist/Countpane-${VERSION}-arm64.dmg"
+          INTEL_DMG="dist/Countpane-${VERSION}-x86_64.dmg"
+          ARM_SHA256="$(shasum -a 256 "$ARM_DMG" | awk '{print $1}')"
+          INTEL_SHA256="$(shasum -a 256 "$INTEL_DMG" | awk '{print $1}')"
+          ./Scripts/render-cask.sh "$VERSION" "$ARM_SHA256" "$INTEL_SHA256" "$GITHUB_REPOSITORY" "dist/countpane.rb"
 
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: Countpane-${{ steps.version.outputs.version }}
           path: |
-            dist/Countpane-${{ steps.version.outputs.version }}.dmg
-            dist/Countpane-${{ steps.version.outputs.version }}.dmg.sha256
+            dist/Countpane-${{ steps.version.outputs.version }}-arm64.dmg
+            dist/Countpane-${{ steps.version.outputs.version }}-arm64.dmg.sha256
+            dist/Countpane-${{ steps.version.outputs.version }}-x86_64.dmg
+            dist/Countpane-${{ steps.version.outputs.version }}-x86_64.dmg.sha256
             dist/countpane.rb
           if-no-files-found: error
 
@@ -100,8 +117,10 @@ jobs:
           TAG="${{ steps.version.outputs.tag }}"
           VERSION="${{ steps.version.outputs.version }}"
           ASSETS=(
-            "dist/Countpane-${VERSION}.dmg"
-            "dist/Countpane-${VERSION}.dmg.sha256"
+            "dist/Countpane-${VERSION}-arm64.dmg"
+            "dist/Countpane-${VERSION}-arm64.dmg.sha256"
+            "dist/Countpane-${VERSION}-x86_64.dmg"
+            "dist/Countpane-${VERSION}-x86_64.dmg.sha256"
             "dist/countpane.rb"
           )
           if gh release view "$TAG" >/dev/null 2>&1; then

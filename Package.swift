@@ -9,7 +9,7 @@ let package = Package(
         .executableTarget(
             name: "Countpane",
             path: "Sources/Countpane",
-            resources: [.process("Resources")]
+            exclude: ["Resources"]
         ),
         .testTarget(name: "CountpaneTests", dependencies: ["Countpane"], path: "Tests/CountpaneTests")
     ]
