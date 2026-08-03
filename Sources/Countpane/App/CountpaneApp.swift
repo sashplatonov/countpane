@@ -73,11 +73,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 
     private func installApplicationIcon() {
-        guard let iconURL = Bundle.module.url(forResource: "AppIcon", withExtension: "png"),
-              let icon = NSImage(contentsOf: iconURL) else {
-            assertionFailure("AppIcon.png is missing from the application resources")
-            return
-        }
+        guard let icon = AppIconResource.image else { return }
 
         icon.size = NSSize(width: 512, height: 512)
         NSApp.applicationIconImage = icon

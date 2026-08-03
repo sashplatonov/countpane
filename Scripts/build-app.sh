@@ -59,6 +59,12 @@ done
 
 cp "$ROOT_DIR/Packaging/Info.plist" "$CONTENTS/Info.plist"
 cp "$ROOT_DIR/Sources/Countpane/Resources/AppIcon.icns" "$RESOURCES/AppIcon.icns"
+cp "$ROOT_DIR/Sources/Countpane/Resources/AppIcon.png" "$RESOURCES/AppIcon.png"
+
+if [[ ! -f "$RESOURCES/AppIcon.png" ]]; then
+    echo "AppIcon.png was not copied into the application resources" >&2
+    exit 1
+fi
 
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$CONTENTS/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$CONTENTS/Info.plist"

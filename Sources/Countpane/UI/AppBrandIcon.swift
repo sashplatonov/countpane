@@ -1,12 +1,10 @@
-import AppKit
 import SwiftUI
 
 struct AppBrandIcon: View {
     var size: CGFloat
 
     private var image: NSImage? {
-        guard let url = Bundle.module.url(forResource: "AppIcon", withExtension: "png") else { return nil }
-        return NSImage(contentsOf: url)
+        AppIconResource.image
     }
 
     var body: some View {

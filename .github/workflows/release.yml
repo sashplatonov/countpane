@@ -69,6 +69,7 @@ jobs:
           echo "Architectures: $ARCHS"
           [[ " $ARCHS " == *" arm64 "* ]]
           [[ " $ARCHS " == *" x86_64 "* ]]
+          test -f dist/Countpane.app/Contents/Resources/AppIcon.png
           codesign --verify --deep --strict --verbose=2 dist/Countpane.app
 
       - name: Render Homebrew cask
