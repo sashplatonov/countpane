@@ -98,19 +98,25 @@ jobs:
         run: |
           TAG="${{ steps.version.outputs.tag }}"
           VERSION="${{ steps.version.outputs.version }}"
-          gh release create "$TAG" \
-            "dist/Countpane-${VERSION}.dmg" \
-            "dist/Countpane-${VERSION}.dmg.sha256" \
-            "dist/countpane.rb" \
-            --title "Countpane ${VERSION}" \
-            --generate-notes \
-            --verify-tag
+          ASSETS=(
+            "dist/Countpane-${VERSION}.dmg"
+            "dist/Countpane-${VERSION}.dmg.sha256"
+            "dist/countpane.rb"
+          )
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${ASSETS[@]}" --clobber
+          else
+            gh release create "$TAG" "${ASSETS[@]}" \
+              --title "Countpane ${VERSION}" \
+              --generate-notes \
+              --verify-tag
+          fi
 
       - name: Update Homebrew tap
         if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
         shell: bash
         run: |
-          TAP_REPOSITORY="sashplatonov/homebrew-countpane"
+          TAP_REPOSITORY="sashplatonov/homebrew-apps"
           git clone "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/${TAP_REPOSITORY}.git" tap
           mkdir -p tap/Casks
           cp dist/countpane.rb tap/Casks/countpane.rb
