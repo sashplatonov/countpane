@@ -1,0 +1,19 @@
+cask "countpane" do
+  version "VERSION"
+  sha256 "SHA256"
+
+  url "https://github.com/sashplatonov/countpane/releases/download/v#{version}/Countpane-#{version}.dmg"
+  name "Countpane"
+  desc "Native macOS countdown manager with always-on-top desktop widgets"
+  homepage "https://github.com/sashplatonov/countpane"
+
+  depends_on macos: ">= :sequoia"
+
+  app "Countpane.app"
+
+  zap trash: [
+    "~/Library/Application Support/Countpane",
+    "~/Library/Preferences/com.sashplatonov.countpane.plist",
+    "~/Library/Saved Application State/com.sashplatonov.countpane.savedState",
+  ]
+end

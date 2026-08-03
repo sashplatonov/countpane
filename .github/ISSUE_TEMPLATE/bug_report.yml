@@ -1,0 +1,40 @@
+name: Bug report
+description: Report a reproducible Countpane problem
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not attach private JSON backups or screenshots with unredacted countdown data.
+  - type: input
+    id: version
+    attributes:
+      label: Countpane version and build
+      placeholder: 1.0.0 · Build 20260803-1456
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS and Mac architecture
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Installation method
+      options: [Homebrew, DMG, Built from source]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true

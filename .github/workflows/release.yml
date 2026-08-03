@@ -1,0 +1,126 @@
+name: Release DMG
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+jobs:
+  native-tests:
+    name: Release tests (${{ matrix.architecture }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            architecture: arm64
+          - runner: macos-15-intel
+            architecture: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Validate package and run tests
+        run: |
+          swift package dump-package >/dev/null
+          swift test
+
+  release:
+    needs: native-tests
+    runs-on: macos-15
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]] || {
+            echo "Release tags must use semantic versioning, for example v1.2.0: $TAG" >&2
+            exit 1
+          }
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate packaging files
+        shell: bash
+        run: |
+          bash -n Scripts/*.sh
+          plutil -lint Packaging/Info.plist Packaging/Countpane.entitlements
+
+      - name: Build DMG
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: ./Scripts/build-dmg.sh "${{ steps.version.outputs.version }}"
+
+      - name: Verify Universal Binary and signature
+        shell: bash
+        run: |
+          ARCHS="$(lipo -archs dist/Countpane.app/Contents/MacOS/Countpane)"
+          echo "Architectures: $ARCHS"
+          [[ " $ARCHS " == *" arm64 "* ]]
+          [[ " $ARCHS " == *" x86_64 "* ]]
+          codesign --verify --deep --strict --verbose=2 dist/Countpane.app
+
+      - name: Render Homebrew cask
+        id: cask
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          DMG="dist/Countpane-${VERSION}.dmg"
+          SHA256="$(shasum -a 256 "$DMG" | awk '{print $1}')"
+          ./Scripts/render-cask.sh "$VERSION" "$SHA256" "$GITHUB_REPOSITORY" "dist/countpane.rb"
+          echo "sha256=${SHA256}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: Countpane-${{ steps.version.outputs.version }}
+          path: |
+            dist/Countpane-${{ steps.version.outputs.version }}.dmg
+            dist/Countpane-${{ steps.version.outputs.version }}.dmg.sha256
+            dist/countpane.rb
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          gh release create "$TAG" \
+            "dist/Countpane-${VERSION}.dmg" \
+            "dist/Countpane-${VERSION}.dmg.sha256" \
+            "dist/countpane.rb" \
+            --title "Countpane ${VERSION}" \
+            --generate-notes \
+            --verify-tag
+
+      - name: Update Homebrew tap
+        if: ${{ env.HOMEBREW_TAP_TOKEN != '' }}
+        shell: bash
+        run: |
+          TAP_REPOSITORY="sashplatonov/homebrew-countpane"
+          git clone "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/${TAP_REPOSITORY}.git" tap
+          mkdir -p tap/Casks
+          cp dist/countpane.rb tap/Casks/countpane.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/countpane.rb
+          if git diff --cached --quiet; then
+            echo "Homebrew cask is already current."
+          else
+            git commit -m "Update Countpane to ${{ steps.version.outputs.version }}"
+            git push
+          fi

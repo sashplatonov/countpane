@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-tests:
+    name: Tests (${{ matrix.architecture }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            architecture: arm64
+          - runner: macos-15-intel
+            architecture: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Show toolchain and architecture
+        run: |
+          swift --version
+          uname -m
+
+      - name: Validate package manifest
+        run: swift package dump-package >/dev/null
+
+      - name: Run tests
+        run: swift test
+
+  universal-build:
+    name: Universal app bundle
+    needs: native-tests
+    runs-on: macos-15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Validate packaging files
+        shell: bash
+        run: |
+          bash -n Scripts/*.sh
+          plutil -lint Packaging/Info.plist Packaging/Countpane.entitlements
+
+      - name: Build release app
+        run: ./Scripts/build-app.sh 0.0.0-ci
+
+      - name: Verify universal executable
+        shell: bash
+        run: |
+          ARCHS="$(lipo -archs dist/Countpane.app/Contents/MacOS/Countpane)"
+          echo "Architectures: $ARCHS"
+          [[ " $ARCHS " == *" arm64 "* ]]
+          [[ " $ARCHS " == *" x86_64 "* ]]
+          codesign --verify --deep --strict --verbose=2 dist/Countpane.app
+
+      - name: Upload app bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: Countpane-universal-app
+          path: dist/Countpane.app
+          if-no-files-found: error
