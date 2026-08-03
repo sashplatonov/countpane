@@ -107,7 +107,7 @@ final class UpdateController {
     func startAutomaticChecks() {
         stopAutomaticChecks()
         guard automaticChecksEnabled else { return }
-        automaticTimer = Timer.scheduledTimer(withTimeInterval: Self.automaticCheckInterval, repeats: true) { _ in
+        automaticTimer = Timer.scheduledTimer(withTimeInterval: Self.automaticCheckInterval, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 await self?.checkForUpdates(userInitiated: false)
             }
