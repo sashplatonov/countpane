@@ -10,15 +10,13 @@ VERSION="$1"
 SHA256="$2"
 REPOSITORY="$3"
 OUTPUT="$4"
-TAG="v${VERSION}"
-
 mkdir -p "$(dirname "$OUTPUT")"
 cat > "$OUTPUT" <<CASK
 cask "countpane" do
   version "${VERSION}"
   sha256 "${SHA256}"
 
-  url "https://github.com/${REPOSITORY}/releases/download/${TAG}/Countpane-${VERSION}.dmg"
+  url "https://github.com/${REPOSITORY}/releases/download/v#{version}/Countpane-#{version}.dmg"
   name "Countpane"
   desc "Native countdown manager with always-on-top desktop widgets"
   homepage "https://github.com/${REPOSITORY}"
