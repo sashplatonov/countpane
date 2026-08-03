@@ -14,21 +14,23 @@ struct StartupPresentationDecision: Equatable, Sendable {
 
 enum AppLifetimePolicy {
     /// Keep the process alive while the model is still loading so closing a
-    /// window cannot race the initial persistence read. Once loaded, only
-    /// active visible widgets justify a background process.
+    /// window cannot race the initial persistence read. A menu-bar entry point
+    /// is also a user-visible reason to keep the process alive.
     static func shouldTerminateAfterLastWindowClosed(
         isModelLoaded: Bool,
-        visibleWidgetCount: Int
+        visibleWidgetCount: Int,
+        hasMenuBarEntryPoint: Bool
     ) -> Bool {
-        isModelLoaded && visibleWidgetCount == 0
+        isModelLoaded && visibleWidgetCount == 0 && !hasMenuBarEntryPoint
     }
 
     static func shouldTerminateAfterInitialLoad(
         hasPendingLastWindowClose: Bool,
         visibleWindowCount: Int,
-        visibleWidgetCount: Int
+        visibleWidgetCount: Int,
+        hasMenuBarEntryPoint: Bool
     ) -> Bool {
-        hasPendingLastWindowClose && visibleWindowCount == 0 && visibleWidgetCount == 0
+        hasPendingLastWindowClose && visibleWindowCount == 0 && visibleWidgetCount == 0 && !hasMenuBarEntryPoint
     }
 }
 

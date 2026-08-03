@@ -7,7 +7,8 @@ struct AppLifetimePolicyTests {
     func loadingState() {
         #expect(!AppLifetimePolicy.shouldTerminateAfterLastWindowClosed(
             isModelLoaded: false,
-            visibleWidgetCount: 0
+            visibleWidgetCount: 0,
+            hasMenuBarEntryPoint: true
         ))
     }
 
@@ -15,7 +16,13 @@ struct AppLifetimePolicyTests {
     func emptyWidgetState() {
         #expect(AppLifetimePolicy.shouldTerminateAfterLastWindowClosed(
             isModelLoaded: true,
-            visibleWidgetCount: 0
+            visibleWidgetCount: 0,
+            hasMenuBarEntryPoint: false
+        ))
+        #expect(!AppLifetimePolicy.shouldTerminateAfterLastWindowClosed(
+            isModelLoaded: true,
+            visibleWidgetCount: 0,
+            hasMenuBarEntryPoint: true
         ))
     }
 
@@ -23,7 +30,8 @@ struct AppLifetimePolicyTests {
     func visibleWidgetState() {
         #expect(!AppLifetimePolicy.shouldTerminateAfterLastWindowClosed(
             isModelLoaded: true,
-            visibleWidgetCount: 1
+            visibleWidgetCount: 1,
+            hasMenuBarEntryPoint: false
         ))
     }
 
@@ -32,17 +40,26 @@ struct AppLifetimePolicyTests {
         #expect(AppLifetimePolicy.shouldTerminateAfterInitialLoad(
             hasPendingLastWindowClose: true,
             visibleWindowCount: 0,
-            visibleWidgetCount: 0
+            visibleWidgetCount: 0,
+            hasMenuBarEntryPoint: false
         ))
         #expect(!AppLifetimePolicy.shouldTerminateAfterInitialLoad(
             hasPendingLastWindowClose: true,
             visibleWindowCount: 1,
-            visibleWidgetCount: 0
+            visibleWidgetCount: 0,
+            hasMenuBarEntryPoint: false
         ))
         #expect(!AppLifetimePolicy.shouldTerminateAfterInitialLoad(
             hasPendingLastWindowClose: true,
             visibleWindowCount: 0,
-            visibleWidgetCount: 1
+            visibleWidgetCount: 1,
+            hasMenuBarEntryPoint: false
+        ))
+        #expect(!AppLifetimePolicy.shouldTerminateAfterInitialLoad(
+            hasPendingLastWindowClose: true,
+            visibleWindowCount: 0,
+            visibleWidgetCount: 0,
+            hasMenuBarEntryPoint: true
         ))
     }
 }
