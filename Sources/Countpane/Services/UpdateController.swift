@@ -13,6 +13,7 @@ final class UpdateController {
     private(set) var automaticChecksEnabled: Bool
 
     private var automaticTimer: Timer?
+    private var checkTask: Task<Void, Never>?
     private let releaseClient: any ReleaseChecking
     private let channelDetector: any InstallationChannelDetecting
     private let homebrewUpdater: any HomebrewUpdating
@@ -91,21 +92,27 @@ final class UpdateController {
         if enabled {
             startAutomaticChecks()
         } else {
-            automaticTimer?.invalidate()
-            automaticTimer = nil
+            stopAutomaticChecks()
             if case .idle = status { status = .idle }
         }
     }
 
     func startAutomaticChecks() {
-        automaticTimer?.invalidate()
-        automaticTimer = nil
-        Task { installationChannel = await channelDetector.detect() }
+        stopAutomaticChecks()
         guard automaticChecksEnabled else { return }
         automaticTimer = Timer.scheduledTimer(withTimeInterval: Self.automaticCheckInterval, repeats: true) { _ in
-            Task { @MainActor in await UpdateController.shared.checkForUpdates(userInitiated: false) }
+            Task { @MainActor [weak self] in
+                await self?.checkForUpdates(userInitiated: false)
+            }
         }
-        Task { await checkForUpdates(userInitiated: false) }
+        Task { @MainActor [weak self] in
+            await self?.checkForUpdates(userInitiated: false)
+        }
+    }
+
+    private func stopAutomaticChecks() {
+        automaticTimer?.invalidate()
+        automaticTimer = nil
     }
 
     func performPrimaryAction() {
@@ -124,13 +131,29 @@ final class UpdateController {
     }
 
     func checkForUpdates(userInitiated: Bool) async {
+        if let checkTask {
+            await checkTask.value
+            return
+        }
+
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.performCheckForUpdates(userInitiated: userInitiated)
+        }
+        checkTask = task
+        await task.value
+    }
+
+    private func performCheckForUpdates(userInitiated: Bool) async {
         let currentTime = now()
         if !userInitiated,
            let lastCheck = defaults.object(forKey: Self.lastCheckKey) as? Date,
            currentTime.timeIntervalSince(lastCheck) < Self.minimumLaunchCheckInterval {
+            checkTask = nil
             return
         }
 
+        defer { checkTask = nil }
         status = .checking
         if installationChannel == .unknown {
             installationChannel = await channelDetector.detect()

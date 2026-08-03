@@ -113,6 +113,48 @@ struct UpdateTests {
         #expect(!defaults.bool(forKey: "update.automaticChecksEnabled"))
     }
 
+    @Test("Disabled automatic checks do no background work")
+    @MainActor
+    func automaticOptOutAvoidsBackgroundWork() async {
+        let defaults = isolatedDefaults()
+        defaults.set(false, forKey: "update.automaticChecksEnabled")
+        let releaseCalls = CallCounter()
+        let detectionCalls = CallCounter()
+        let controller = UpdateController(
+            releaseClient: CountingReleaseClient(counter: releaseCalls),
+            channelDetector: CountingChannelDetector(counter: detectionCalls),
+            homebrewUpdater: FakeHomebrewUpdater(result: .success("")),
+            defaults: defaults
+        )
+
+        controller.startAutomaticChecks()
+        try? await Task.sleep(for: .milliseconds(50))
+
+        #expect(releaseCalls.value == 0)
+        #expect(detectionCalls.value == 0)
+    }
+
+    @Test("Concurrent update triggers share one release request")
+    @MainActor
+    func concurrentChecksAreCoalesced() async {
+        let releaseCalls = CallCounter()
+        let controller = UpdateController(
+            releaseClient: CountingReleaseClient(counter: releaseCalls),
+            channelDetector: FixedChannelDetector(channel: .development),
+            homebrewUpdater: FakeHomebrewUpdater(result: .success("")),
+            defaults: isolatedDefaults(),
+            currentVersion: { "1.0.0" }
+        )
+
+        let first = Task { await controller.checkForUpdates(userInitiated: true) }
+        try? await Task.sleep(for: .milliseconds(10))
+        let second = Task { await controller.checkForUpdates(userInitiated: true) }
+        await first.value
+        await second.value
+
+        #expect(releaseCalls.value == 1)
+    }
+
     @Test("Homebrew update failures become user-facing states")
     @MainActor
     func homebrewFailure() async {
@@ -141,6 +183,42 @@ private struct FakeReleaseClient: ReleaseChecking, @unchecked Sendable {
 private struct FixedChannelDetector: InstallationChannelDetecting {
     let channel: InstallationChannel
     func detect() async -> InstallationChannel { channel }
+}
+
+private final class CallCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+
+    var value: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return count
+    }
+
+    func increment() {
+        lock.lock()
+        count += 1
+        lock.unlock()
+    }
+}
+
+private struct CountingReleaseClient: ReleaseChecking {
+    let counter: CallCounter
+
+    func latestRelease() async throws -> GitHubRelease {
+        counter.increment()
+        try await Task.sleep(for: .milliseconds(80))
+        return release("v1.0.0")
+    }
+}
+
+private struct CountingChannelDetector: InstallationChannelDetecting {
+    let counter: CallCounter
+
+    func detect() async -> InstallationChannel {
+        counter.increment()
+        return .development
+    }
 }
 
 private struct FakeHomebrewUpdater: HomebrewUpdating, @unchecked Sendable {
