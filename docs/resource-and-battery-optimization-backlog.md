@@ -238,7 +238,7 @@ git commit -m "perf(dashboard): Share derived countdown data"
 
 ## P2-2: Prove idle and battery behavior in the packaged app
 
-**Status:** 🚧 In progress
+**Status:** ⬜ Not started
 **Priority:** P2
 **Depends on:** P1-2, P1-3, P2-1
 
