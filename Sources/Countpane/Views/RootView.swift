@@ -2,7 +2,6 @@ import SwiftUI
 
 struct RootView: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.dismissWindow) private var dismissWindow
     @AppStorage("appTheme") private var appTheme = AppTheme.ink.rawValue
     @AppStorage("displayDensity") private var displayDensity = DisplayDensity.compactRow.rawValue
     @State private var selection: AppSection = .active
@@ -52,7 +51,7 @@ struct RootView: View {
         }
         .task {
             await model.load()
-            applyStartupPresentation()
+            openVisibleWidgets()
         }
         .onChange(of: widgetIDs) { _, _ in openVisibleWidgets() }
         .focusedSceneValue(\.newCountdownAction, newCountdown)
@@ -327,13 +326,6 @@ struct RootView: View {
 
     private func openVisibleWidgets() {
         WidgetWindowController.shared.sync(with: model.visibleWidgetItems)
-    }
-
-    private func applyStartupPresentation() {
-        openVisibleWidgets()
-        if LaunchSession.shared.shouldDismissMainWindowForStartup() {
-            DispatchQueue.main.async { dismissWindow(id: "main") }
-        }
     }
 
     private func newCountdown() {

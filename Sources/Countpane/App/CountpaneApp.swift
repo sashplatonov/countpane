@@ -15,6 +15,7 @@ struct CountpaneApp: App {
         .defaultSize(width: 1200, height: 760)
         .windowResizability(.contentMinSize)
         .commands { AppCommands() }
+        .handlesExternalEvents(matching: StartupPresentationPolicy.mainWindowEvents)
 
         MenuBarExtra("Countpane", systemImage: "calendar.badge.clock") {
             MenuBarView()
@@ -43,27 +44,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        LaunchSession.shared.configure(from: notification)
-
         // Widget panels are restored after the persistent model has loaded.
-        // Login launches stay in the background; RootView only closes any
-        // transient management window SwiftUI may create for that launch.
+        // The main window is opened only from the menu-bar action.
         UpdateController.shared.startAutomaticChecks()
 
         Task { @MainActor in
             await AppModel.shared.load()
             WidgetWindowController.shared.sync(with: AppModel.shared.visibleWidgetItems)
-        }
-
-        guard !LaunchSession.shared.isLoginLaunch else { return }
-
-        NSApp.activate(ignoringOtherApps: true)
-
-        // Activation can race with initial window creation when launched from
-        // Xcode as a Swift Package executable. Re-activate on the next run loop.
-        DispatchQueue.main.async {
-            NSApp.activate(ignoringOtherApps: true)
-            NSApp.windows.first(where: { $0.canBecomeKey })?.makeKeyAndOrderFront(nil)
         }
     }
 

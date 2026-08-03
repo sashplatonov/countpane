@@ -1,22 +1,11 @@
 import AppKit
 import Foundation
-import Observation
 import ServiceManagement
 
-struct StartupPresentationDecision: Equatable, Sendable {
-    let showMainWindow: Bool
-    let showCountdownWidgets: Bool
-
-    static func resolve(isLoginLaunch: Bool) -> Self {
-        Self(showMainWindow: !isLoginLaunch, showCountdownWidgets: true)
-    }
-
-    static func shouldDismissMainWindow(
-        isLoginLaunch: Bool,
-        hasAppliedStartupPresentation: Bool
-    ) -> Bool {
-        isLoginLaunch && !hasAppliedStartupPresentation
-    }
+enum StartupPresentationPolicy {
+    /// Restricting the management scene to this event prevents SwiftUI from
+    /// creating a main window during a menu-bar-only launch.
+    static let mainWindowEvents: Set<String> = ["main"]
 }
 
 enum AppLifetimePolicy {
@@ -38,33 +27,6 @@ enum AppLifetimePolicy {
         hasMenuBarEntryPoint: Bool
     ) -> Bool {
         hasPendingLastWindowClose && visibleWindowCount == 0 && visibleWidgetCount == 0 && !hasMenuBarEntryPoint
-    }
-}
-
-@MainActor
-@Observable
-final class LaunchSession {
-    static let shared = LaunchSession()
-
-    private(set) var isLoginLaunch = false
-    private var hasAppliedStartupPresentation = false
-
-    private init() {}
-
-    func configure(from notification: Notification) {
-        // AppKit publishes this Boolean in the launch notification. A default
-        // launch is a normal user launch; a login-item launch is non-default.
-        let defaultLaunch = notification.userInfo?[NSApplication.launchIsDefaultUserInfoKey] as? Bool ?? true
-        isLoginLaunch = !defaultLaunch
-    }
-
-    func shouldDismissMainWindowForStartup() -> Bool {
-        let shouldDismiss = StartupPresentationDecision.shouldDismissMainWindow(
-            isLoginLaunch: isLoginLaunch,
-            hasAppliedStartupPresentation: hasAppliedStartupPresentation
-        )
-        hasAppliedStartupPresentation = true
-        return shouldDismiss
     }
 }
 
