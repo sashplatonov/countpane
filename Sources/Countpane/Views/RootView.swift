@@ -18,18 +18,26 @@ struct RootView: View {
     var body: some View {
         @Bindable var model = model
 
-        TimelineView(.periodic(from: .now, by: 3600)) { context in
-            let snapshot = model.dashboardSnapshot(
-                at: context.date,
-                filter: filter,
-                includesCompletedItems: selection == .completed
-            )
-            HStack(spacing: 0) {
-                sidebar(snapshot: snapshot)
-                Divider().opacity(0.35)
-                mainContent(now: context.date, snapshot: snapshot)
+        Group {
+            if !model.isLoaded {
+                ProgressView("Loading countdowns…")
+            } else if model.didFailToLoad && selection != .settings {
+                loadFailureView
+            } else {
+                TimelineView(.periodic(from: .now, by: 3600)) { context in
+                    let snapshot = model.dashboardSnapshot(
+                        at: context.date,
+                        filter: filter,
+                        includesCompletedItems: selection == .completed
+                    )
+                    HStack(spacing: 0) {
+                        sidebar(snapshot: snapshot)
+                        Divider().opacity(0.35)
+                        mainContent(now: context.date, snapshot: snapshot)
+                    }
+                    .background(theme.canvas)
+                }
             }
-            .background(theme.canvas)
         }
         .frame(minWidth: 980, minHeight: 650)
         .background(WindowConfigurator())
@@ -60,6 +68,21 @@ struct RootView: View {
             Button("OK", role: .cancel) { model.persistenceError = nil }
         } message: {
             Text(model.persistenceError ?? "Unknown error")
+        }
+    }
+
+    private var loadFailureView: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 36))
+                .foregroundStyle(.orange)
+            Text("Couldn’t Load Countdowns")
+                .font(.title2.weight(.semibold))
+            Text("Your saved data was left unchanged. Restore a backup before creating new countdowns.")
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: 420)
+            Button("Open Settings") { selection = .settings }
         }
     }
 

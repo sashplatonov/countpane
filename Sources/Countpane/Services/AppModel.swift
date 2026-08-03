@@ -34,6 +34,7 @@ final class AppModel {
 
     private(set) var items: [CountdownItem] = []
     private(set) var isLoaded = false
+    private(set) var didFailToLoad = false
     private(set) var undoNotice: UndoNotice?
     var persistenceError: String?
     var searchText = ""
@@ -112,11 +113,14 @@ final class AppModel {
         guard !isLoaded else { return }
         do {
             items = try await repository.load()
-        } catch { persistenceError = error.localizedDescription }
+        } catch {
+            didFailToLoad = true
+            persistenceError = error.localizedDescription
+        }
         isLoaded = true
     }
 
-    func add(_ item: CountdownItem) { items.append(item); scheduleSave() }
+    func add(_ item: CountdownItem) { items.append(item); scheduleSave(immediately: true) }
     func update(_ item: CountdownItem) { guard let i = index(of: item) else { return }; items[i] = item; scheduleSave() }
 
     func complete(_ item: CountdownItem) {
@@ -161,6 +165,7 @@ final class AppModel {
     func dismissUndo() { clearUndoNotice() }
 
     func saveImmediately() async {
+        guard !didFailToLoad else { return }
         saveTask?.cancel()
         do { try await repository.save(items) }
         catch { persistenceError = error.localizedDescription }
@@ -173,6 +178,8 @@ final class AppModel {
         saveTask?.cancel()
         try await repository.save(importedItems)
         items = importedItems
+        didFailToLoad = false
+        persistenceError = nil
         clearUndoNotice()
         searchText = ""
     }
@@ -222,11 +229,14 @@ final class AppModel {
         undoExpiryTask?.cancel(); undoExpiryTask = nil; undoNotice = nil
     }
 
-    private func scheduleSave() {
+    private func scheduleSave(immediately: Bool = false) {
+        guard !didFailToLoad else { return }
         let snapshot = items
         saveTask?.cancel()
         saveTask = Task { [repository] in
-            do { try await Task.sleep(for: .milliseconds(350)) } catch { return }
+            if !immediately {
+                do { try await Task.sleep(for: .milliseconds(350)) } catch { return }
+            }
             guard !Task.isCancelled else { return }
             do { try await repository.save(snapshot) }
             catch { await MainActor.run { self.persistenceError = error.localizedDescription } }

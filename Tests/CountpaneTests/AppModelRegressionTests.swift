@@ -5,6 +5,40 @@ import Testing
 @Suite("App model review regressions")
 @MainActor
 struct AppModelReviewRegressionTests {
+    @Test("A failed load never overwrites saved countdown data on exit")
+    func failedLoadPreservesStoredData() async throws {
+        let url = temporaryFileURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let malformedData = Data("not-json".utf8)
+        try malformedData.write(to: url)
+
+        let model = AppModel(repository: CountdownRepository(fileURL: url))
+        await model.load()
+        await model.saveImmediately()
+
+        #expect(model.didFailToLoad)
+        #expect(try Data(contentsOf: url) == malformedData)
+    }
+
+    @Test("Creating a countdown persists without waiting for the edit debounce")
+    func newCountdownPersistsImmediately() async {
+        let url = temporaryFileURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+
+        let model = AppModel(repository: CountdownRepository(fileURL: url))
+        let countdown = CountdownItem(
+            title: "Flight",
+            targetDate: Date(timeIntervalSince1970: 1_800_000_000)
+        )
+        model.add(countdown)
+
+        try? await Task.sleep(for: .milliseconds(50))
+
+        let restoredModel = AppModel(repository: CountdownRepository(fileURL: url))
+        await restoredModel.load()
+        #expect(restoredModel.items == [countdown])
+    }
+
     @Test("Whitespace-only search behaves like an empty search")
     func whitespaceSearch() async {
         let url = temporaryFileURL()
