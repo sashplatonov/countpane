@@ -39,7 +39,7 @@ struct CountdownWidgetView: View {
                         .background(.ultraThinMaterial, in: Circle())
 
                     Text(item.title)
-                        .font(.headline.weight(.semibold))
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
                         .lineLimit(1)
 
                     Spacer(minLength: 4)
@@ -74,7 +74,7 @@ struct CountdownWidgetView: View {
                         .background(item.theme.accent.opacity(0.18 + urgency.emphasis), in: Capsule())
                     Spacer()
                     Text(item.targetDate, format: .dateTime.day().month(.abbreviated))
-                        .font(.caption.weight(.semibold))
+                        .font(.caption2.weight(.medium))
                         .foregroundStyle(item.theme.secondary)
                 }
             }

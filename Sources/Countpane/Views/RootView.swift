@@ -6,8 +6,7 @@ struct RootView: View {
     @AppStorage("displayDensity") private var displayDensity = DisplayDensity.compactRow.rawValue
     @State private var selection: AppSection = .active
     @State private var filter: CountdownFilter = .all
-    @State private var editorItem: CountdownItem?
-    @State private var showEditor = false
+    @State private var editorPresentation: CountdownEditorPresentation?
     @State private var updateController = UpdateController.shared
 
     private var theme: AppTheme { AppTheme(rawValue: appTheme) ?? .ink }
@@ -43,10 +42,10 @@ struct RootView: View {
         .preferredColorScheme(theme.colorScheme)
         .safeAreaInset(edge: .bottom) { undoBar }
         .animation(.snappy, value: model.undoNotice)
-        .sheet(isPresented: $showEditor, onDismiss: { editorItem = nil }) {
-            CountdownEditor(item: editorItem) { saved in
-                if editorItem == nil { model.add(saved) } else { model.update(saved) }
-                showEditor = false
+        .sheet(item: $editorPresentation) { presentation in
+            CountdownEditor(item: presentation.item) { saved in
+                if presentation.item == nil { model.add(saved) } else { model.update(saved) }
+                editorPresentation = nil
             }
         }
         .task {
@@ -329,13 +328,28 @@ struct RootView: View {
     }
 
     private func newCountdown() {
-        editorItem = nil
-        showEditor = true
+        editorPresentation = .new(id: UUID())
     }
 
     private func edit(_ item: CountdownItem) {
-        editorItem = item
-        showEditor = true
+        editorPresentation = .edit(item)
+    }
+}
+
+private enum CountdownEditorPresentation: Identifiable {
+    case new(id: UUID)
+    case edit(CountdownItem)
+
+    var id: UUID {
+        switch self {
+        case .new(let id): id
+        case .edit(let item): item.id
+        }
+    }
+
+    var item: CountdownItem? {
+        guard case .edit(let item) = self else { return nil }
+        return item
     }
 }
 
