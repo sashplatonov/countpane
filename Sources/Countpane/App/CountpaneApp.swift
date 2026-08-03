@@ -11,7 +11,6 @@ struct CountpaneApp: App {
             RootView()
                 .environment(model)
                 .frame(minWidth: 700, minHeight: 500)
-                .task { await model.load() }
         }
         .defaultSize(width: 1200, height: 760)
         .windowResizability(.contentMinSize)
@@ -84,8 +83,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         terminationSaveInProgress = true
 
         Task { @MainActor in
-            await AppModel.shared.saveImmediately()
-            sender.reply(toApplicationShouldTerminate: true)
+            let didSave = await AppModel.shared.saveForTermination()
+            self.terminationSaveInProgress = false
+            sender.reply(toApplicationShouldTerminate: didSave)
         }
         return .terminateLater
     }

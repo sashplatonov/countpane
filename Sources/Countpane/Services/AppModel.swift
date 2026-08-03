@@ -41,6 +41,7 @@ final class AppModel {
     var sortMode: SortMode = .date
 
     @ObservationIgnored private let repository: CountdownRepository
+    @ObservationIgnored private var loadTask: Task<[CountdownItem], Error>?
     @ObservationIgnored private var saveTask: Task<Void, Never>?
     @ObservationIgnored private var undoExpiryTask: Task<Void, Never>?
 
@@ -111,12 +112,22 @@ final class AppModel {
 
     func load() async {
         guard !isLoaded else { return }
+
+        let task: Task<[CountdownItem], Error>
+        if let loadTask {
+            task = loadTask
+        } else {
+            task = Task { [repository] in try await repository.load() }
+            loadTask = task
+        }
+
         do {
-            items = try await repository.load()
+            items = try await task.value
         } catch {
             didFailToLoad = true
             persistenceError = error.localizedDescription
         }
+        loadTask = nil
         isLoaded = true
     }
 
@@ -164,11 +175,22 @@ final class AppModel {
 
     func dismissUndo() { clearUndoNotice() }
 
-    func saveImmediately() async {
-        guard !didFailToLoad else { return }
+    @discardableResult
+    func saveImmediately() async -> Bool {
+        guard isLoaded, !didFailToLoad else { return false }
         saveTask?.cancel()
-        do { try await repository.save(items) }
-        catch { persistenceError = error.localizedDescription }
+        do {
+            try await repository.save(items)
+            return true
+        } catch {
+            persistenceError = error.localizedDescription
+            return false
+        }
+    }
+
+    func saveForTermination() async -> Bool {
+        await load()
+        return await saveImmediately()
     }
 
     /// Atomically persists imported data before replacing the in-memory state.

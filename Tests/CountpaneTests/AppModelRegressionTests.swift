@@ -14,29 +14,68 @@ struct AppModelReviewRegressionTests {
 
         let model = AppModel(repository: CountdownRepository(fileURL: url))
         await model.load()
-        await model.saveImmediately()
+        let didSave = await model.saveImmediately()
 
         #expect(model.didFailToLoad)
+        #expect(!didSave)
         #expect(try Data(contentsOf: url) == malformedData)
     }
 
-    @Test("Creating a countdown persists without waiting for the edit debounce")
-    func newCountdownPersistsImmediately() async {
+    @Test("A countdown survives saving, closing, and reopening the model")
+    func countdownSurvivesCloseAndReopen() async {
         let url = temporaryFileURL()
         defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
 
         let model = AppModel(repository: CountdownRepository(fileURL: url))
+        await model.load()
         let countdown = CountdownItem(
             title: "Flight",
             targetDate: Date(timeIntervalSince1970: 1_800_000_000)
         )
         model.add(countdown)
+        let didSave = await model.saveForTermination()
 
-        try? await Task.sleep(for: .milliseconds(50))
+        let reopenedModel = AppModel(repository: CountdownRepository(fileURL: url))
+        await reopenedModel.load()
+        #expect(didSave)
+        #expect(reopenedModel.items == [countdown])
+    }
 
-        let restoredModel = AppModel(repository: CountdownRepository(fileURL: url))
-        await restoredModel.load()
-        #expect(restoredModel.items == [countdown])
+    @Test("Termination waits for the initial load before saving")
+    func terminationBeforeInitialLoadPreservesData() async throws {
+        let url = temporaryFileURL()
+        defer { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        let countdown = CountdownItem(
+            title: "Existing",
+            targetDate: Date(timeIntervalSince1970: 1_800_000_000)
+        )
+        let repository = CountdownRepository(fileURL: url)
+        try await repository.save([countdown])
+
+        let model = AppModel(repository: repository)
+        let didSave = await model.saveForTermination()
+
+        #expect(didSave)
+        #expect(try await repository.load() == [countdown])
+    }
+
+    @Test("A write failure refuses termination and keeps in-memory data")
+    func writeFailureRefusesTermination() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appending(path: "CountpaneBlockedSave-\(UUID().uuidString)", directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try Data("blocking-file".utf8).write(to: directory)
+        let url = directory.appending(path: "countpane.json")
+        let model = AppModel(repository: CountdownRepository(fileURL: url))
+        await model.load()
+        let countdown = CountdownItem(title: "Unsaved", targetDate: .now)
+        model.add(countdown)
+
+        let didSave = await model.saveForTermination()
+
+        #expect(!didSave)
+        #expect(model.items == [countdown])
+        #expect(model.persistenceError != nil)
     }
 
     @Test("Whitespace-only search behaves like an empty search")
