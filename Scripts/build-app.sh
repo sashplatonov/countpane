@@ -19,7 +19,9 @@ ARCHITECTURES=(arm64 x86_64)
 find_product() {
     local build_root="$1"
     local product
-    product="$(find "$build_root" -type f -path "*/${CONFIGURATION}/Countpane" -perm -111 | head -n 1 || true)"
+    # SwiftPM may use either its legacy lower-case configuration directory or
+    # Xcode's Products/Release layout when building for a target triple.
+    product="$(find "$build_root" -type f -name Countpane -perm -111 ! -path '*.dSYM/*' | head -n 1 || true)"
     if [[ -z "$product" ]]; then
         echo "Unable to locate Countpane executable under $build_root" >&2
         exit 1
@@ -98,6 +100,6 @@ else
 fi
 
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_DIR"
-/usr/bin/codesign -d --entitlements :- "$APP_DIR" >/dev/null
+/usr/bin/codesign -d --entitlements - "$APP_DIR" >/dev/null
 
 printf 'Built %s (build %s, architectures: %s)\n' "$APP_DIR" "$BUILD_TIMESTAMP" "$ARCHS"
