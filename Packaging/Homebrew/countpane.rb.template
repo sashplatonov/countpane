@@ -1,15 +1,11 @@
 cask "countpane" do
+  arch arm: "arm64", intel: "x86_64"
+
   version "VERSION"
-  on_macos do
-    on_arm do
-      url "https://github.com/sashplatonov/countpane/releases/download/v#{version}/Countpane-#{version}-arm64.dmg"
-      sha256 "ARM_SHA256"
-    end
-    on_intel do
-      url "https://github.com/sashplatonov/countpane/releases/download/v#{version}/Countpane-#{version}-x86_64.dmg"
-      sha256 "INTEL_SHA256"
-    end
-  end
+  sha256 arm:   "ARM_SHA256",
+         intel: "INTEL_SHA256"
+
+  url "https://github.com/sashplatonov/countpane/releases/download/v#{version}/Countpane-#{version}-#{arch}.dmg"
   name "Countpane"
   desc "Native countdown manager with always-on-top desktop widgets"
   homepage "https://github.com/sashplatonov/countpane"

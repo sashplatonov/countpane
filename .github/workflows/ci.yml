@@ -10,6 +10,33 @@ permissions:
   contents: read
 
 jobs:
+  homebrew-cask:
+    name: Validate generated Homebrew Cask
+    runs-on: macos-15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Render and validate Homebrew cask
+        env:
+          VALIDATION_TAP: local/countpane-validation-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          bash -n Scripts/render-cask.sh
+          ./Scripts/render-cask.sh \
+            0.0.0-ci \
+            0000000000000000000000000000000000000000000000000000000000000000 \
+            1111111111111111111111111111111111111111111111111111111111111111 \
+            "$GITHUB_REPOSITORY" \
+            dist/countpane.rb
+          brew tap-new --no-git "$VALIDATION_TAP"
+          VALIDATION_TAP_PATH="$(brew --repository)/Library/Taps/local/homebrew-countpane-validation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$VALIDATION_TAP_PATH/Casks"
+          cp dist/countpane.rb "$VALIDATION_TAP_PATH/Casks/countpane.rb"
+          brew style --cask "$VALIDATION_TAP/countpane"
+          brew audit --cask --skip-style "$VALIDATION_TAP/countpane"
+          brew untap --force "$VALIDATION_TAP"
+
   native-tests:
     name: Tests (${{ matrix.architecture }})
     strategy:

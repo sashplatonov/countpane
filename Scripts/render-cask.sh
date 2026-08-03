@@ -14,18 +14,13 @@ OUTPUT="$5"
 mkdir -p "$(dirname "$OUTPUT")"
 cat > "$OUTPUT" <<CASK
 cask "countpane" do
-  version "${VERSION}"
+  arch arm: "arm64", intel: "x86_64"
 
-  on_macos do
-    on_arm do
-      url "https://github.com/${REPOSITORY}/releases/download/v#{version}/Countpane-#{version}-arm64.dmg"
-      sha256 "${ARM_SHA256}"
-    end
-    on_intel do
-      url "https://github.com/${REPOSITORY}/releases/download/v#{version}/Countpane-#{version}-x86_64.dmg"
-      sha256 "${INTEL_SHA256}"
-    end
-  end
+  version "${VERSION}"
+  sha256 arm:   "${ARM_SHA256}",
+         intel: "${INTEL_SHA256}"
+
+  url "https://github.com/${REPOSITORY}/releases/download/v#{version}/Countpane-#{version}-#{arch}.dmg"
   name "Countpane"
   desc "Native countdown manager with always-on-top desktop widgets"
   homepage "https://github.com/${REPOSITORY}"

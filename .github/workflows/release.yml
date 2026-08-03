@@ -96,6 +96,19 @@ jobs:
           INTEL_SHA256="$(shasum -a 256 "$INTEL_DMG" | awk '{print $1}')"
           ./Scripts/render-cask.sh "$VERSION" "$ARM_SHA256" "$INTEL_SHA256" "$GITHUB_REPOSITORY" "dist/countpane.rb"
 
+      - name: Validate Homebrew cask
+        env:
+          VALIDATION_TAP: local/countpane-validation-${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          brew tap-new --no-git "$VALIDATION_TAP"
+          VALIDATION_TAP_PATH="$(brew --repository)/Library/Taps/local/homebrew-countpane-validation-${GITHUB_RUN_ID}"
+          mkdir -p "$VALIDATION_TAP_PATH/Casks"
+          cp dist/countpane.rb "$VALIDATION_TAP_PATH/Casks/countpane.rb"
+          brew style --cask "$VALIDATION_TAP/countpane"
+          brew audit --cask --skip-style "$VALIDATION_TAP/countpane"
+          brew untap --force "$VALIDATION_TAP"
+
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
