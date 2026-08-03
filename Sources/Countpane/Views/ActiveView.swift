@@ -7,6 +7,8 @@ struct ActiveView: View {
     @AppStorage("appTheme") private var appTheme = AppTheme.ink.rawValue
     let now: Date
     let filter: CountdownFilter
+    let items: [CountdownItem]
+    let nextItemID: UUID?
     let onEdit: (CountdownItem) -> Void
     let onNew: () -> Void
 
@@ -21,23 +23,13 @@ struct ActiveView: View {
         }
     }
 
-    private var filteredItems: [CountdownItem] {
-        model.activeItems(at: now).filter { item in
-            switch filter {
-            case .all: true
-            case .pinned: item.isPinned
-            case .today: item.daysRemaining(from: now) == 0
-            case .week: (0...7).contains(item.daysRemaining(from: now))
-            }
-        }
-    }
-
     var body: some View {
-        let items = filteredItems
-
         if items.isEmpty {
             ContentUnavailableView {
-                Label("No Countdowns Here", systemImage: filter == .all ? "hourglass" : "line.3.horizontal.decrease.circle")
+                Label(
+                    "No Countdowns Here",
+                    systemImage: filter == .all ? "hourglass" : "line.3.horizontal.decrease.circle"
+                )
             } description: {
                 Text(filter == .all ? "Create a countdown for an upcoming event." : "No active countdowns match this view.")
             } actions: {
@@ -55,7 +47,7 @@ struct ActiveView: View {
                         item: item,
                         now: now,
                         density: density,
-                        isNext: model.nextItem(at: now)?.id == item.id,
+                        isNext: nextItemID == item.id,
                         onEdit: { onEdit(item) }
                     )
                 }

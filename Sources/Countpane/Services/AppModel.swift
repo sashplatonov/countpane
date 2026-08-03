@@ -15,6 +15,19 @@ struct UndoNotice: Equatable, Sendable {
     }
 }
 
+struct DashboardSnapshot: Equatable, Sendable {
+    let activeItems: [CountdownItem]
+    let filteredActiveItems: [CountdownItem]
+    let completedItems: [CountdownItem]
+    let nextItem: CountdownItem?
+    let referenceDate: Date
+
+    var activeCount: Int { activeItems.count }
+    var pinnedCount: Int { activeItems.filter(\.isPinned).count }
+    var todayCount: Int { activeItems.filter { $0.daysRemaining(from: referenceDate) == 0 }.count }
+    var weekCount: Int { activeItems.filter { (0...7).contains($0.daysRemaining(from: referenceDate)) }.count }
+}
+
 @MainActor @Observable
 final class AppModel {
     static let shared = AppModel()
@@ -53,7 +66,31 @@ final class AppModel {
     }
 
     func nextItem(at date: Date = .now) -> CountdownItem? {
-        filtered(items.filter { !$0.isCompleted && !$0.isPinned })
+        nextItem(from: activeItems(at: date), at: date)
+    }
+
+    func dashboardSnapshot(at date: Date = .now, filter: CountdownFilter = .all) -> DashboardSnapshot {
+        let active = activeItems(at: date)
+        let filteredActive = active.filter { item in
+            switch filter {
+            case .all: true
+            case .pinned: item.isPinned
+            case .today: item.daysRemaining(from: date) == 0
+            case .week: (0...7).contains(item.daysRemaining(from: date))
+            }
+        }
+        return DashboardSnapshot(
+            activeItems: active,
+            filteredActiveItems: filteredActive,
+            completedItems: completedItems,
+            nextItem: nextItem(from: active, at: date),
+            referenceDate: date
+        )
+    }
+
+    private func nextItem(from activeItems: [CountdownItem], at date: Date) -> CountdownItem? {
+        activeItems
+            .filter { !$0.isPinned }
             .filter { item in
                 let days = item.daysRemaining(from: date)
                 return (0...90).contains(days)

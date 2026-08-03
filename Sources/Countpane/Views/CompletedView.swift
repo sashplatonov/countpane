@@ -4,11 +4,12 @@ import SwiftUI
 struct CompletedView: View {
     @AppStorage("appTheme") private var appTheme = AppTheme.ink.rawValue
     @Environment(AppModel.self) private var model
+    let items: [CountdownItem]
     private var theme: AppTheme { AppTheme(rawValue: appTheme) ?? .ink }
 
     var body: some View {
         ScrollView {
-            if model.completedItems.isEmpty {
+            if items.isEmpty {
                 ContentUnavailableView(
                     "No Completed Countpane",
                     systemImage: "checkmark.circle",
@@ -17,7 +18,7 @@ struct CompletedView: View {
                 .frame(maxWidth: .infinity, minHeight: 220)
             } else {
                 LazyVStack(spacing: 10) {
-                    ForEach(model.completedItems) { item in
+                    ForEach(items) { item in
                         completedRow(item)
                     }
                 }

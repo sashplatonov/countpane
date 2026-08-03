@@ -19,10 +19,11 @@ struct RootView: View {
         @Bindable var model = model
 
         TimelineView(.periodic(from: .now, by: 3600)) { context in
+            let snapshot = model.dashboardSnapshot(at: context.date, filter: filter)
             HStack(spacing: 0) {
-                sidebar(now: context.date)
+                sidebar(snapshot: snapshot)
                 Divider().opacity(0.35)
-                mainContent(now: context.date)
+                mainContent(now: context.date, snapshot: snapshot)
             }
             .background(theme.canvas)
         }
@@ -58,14 +59,14 @@ struct RootView: View {
         }
     }
 
-    private func sidebar(now: Date) -> some View {
+    private func sidebar(snapshot: DashboardSnapshot) -> some View {
         DashboardSidebarView(
             selection: $selection,
             filter: $filter,
-            activeCount: model.activeItems(at: now).count,
-            pinnedCount: model.activeItems(at: now).filter(\.isPinned).count,
-            todayCount: model.activeItems(at: now).filter { $0.daysRemaining(from: now) == 0 }.count,
-            weekCount: model.activeItems(at: now).filter { (0...7).contains($0.daysRemaining(from: now)) }.count,
+            activeCount: snapshot.activeCount,
+            pinnedCount: snapshot.pinnedCount,
+            todayCount: snapshot.todayCount,
+            weekCount: snapshot.weekCount,
             updateAvailable: {
                 if case .available = updateController.status { return true }
                 return false
@@ -76,7 +77,7 @@ struct RootView: View {
     }
 
     @ViewBuilder
-    private func mainContent(now: Date) -> some View {
+    private func mainContent(now: Date, snapshot: DashboardSnapshot) -> some View {
         VStack(spacing: 0) {
             if selection == .settings {
                 HStack {
@@ -92,15 +93,22 @@ struct RootView: View {
                 topTabs(now: now)
                 ScrollView {
                     VStack(spacing: 20) {
-                        dashboardHeader(now: now)
+                        dashboardHeader(now: now, snapshot: snapshot)
                         controlBar
 
                         Group {
                             switch selection {
                             case .active:
-                                ActiveView(now: now, filter: filter, onEdit: edit, onNew: newCountdown)
+                                ActiveView(
+                                    now: now,
+                                    filter: filter,
+                                    items: snapshot.filteredActiveItems,
+                                    nextItemID: snapshot.nextItem?.id,
+                                    onEdit: edit,
+                                    onNew: newCountdown
+                                )
                             case .completed:
-                                CompletedView()
+                                CompletedView(items: snapshot.completedItems)
                             case .settings:
                                 EmptyView()
                             }
@@ -108,7 +116,7 @@ struct RootView: View {
                         .frame(maxWidth: .infinity)
 
                         if selection == .active {
-                            Text("\(model.activeItems(at: now).count) active countdowns")
+                            Text("\(snapshot.activeCount) active countdowns")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .padding(.vertical, 8)
@@ -152,9 +160,9 @@ struct RootView: View {
         .countpaneNoFocusRing()
     }
 
-    private func dashboardHeader(now: Date) -> some View {
-        let count = selection == .active ? model.activeItems(at: now).count : model.completedItems.count
-        let next = model.nextItem(at: now)
+    private func dashboardHeader(now: Date, snapshot: DashboardSnapshot) -> some View {
+        let count = selection == .active ? snapshot.activeCount : snapshot.completedItems.count
+        let next = snapshot.nextItem
 
         return HStack(spacing: 24) {
             dashboardSummary(now: now, next: next)
