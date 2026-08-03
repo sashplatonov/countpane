@@ -65,8 +65,7 @@ jobs:
           test ! -e dist/Countpane.app/Contents/Resources/Countpane_Countpane.bundle
           codesign --verify --deep --strict --verbose=2 dist/Countpane.app
           test -f dist/Countpane.dSYM/Contents/Resources/DWARF/Countpane
-          xcrun dwarfdump --uuid dist/Countpane.app/Contents/MacOS/Countpane
-          xcrun dwarfdump --uuid dist/Countpane.dSYM
+          diff -u <(xcrun dwarfdump --uuid dist/Countpane.app/Contents/MacOS/Countpane | awk '/^UUID:/ { print $2 }' | sort) <(xcrun dwarfdump --uuid dist/Countpane.dSYM | awk '/^UUID:/ { print $2 }' | sort)
 
       - name: Measure application size
         run: ./Scripts/measure-distribution-size.sh --max-application-bytes 9000000 --max-executable-bytes 7200000 dist/Countpane.app

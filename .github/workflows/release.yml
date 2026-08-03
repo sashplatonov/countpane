@@ -77,8 +77,7 @@ jobs:
             test ! -e "$APP/Contents/Resources/Countpane_Countpane.bundle"
             codesign --verify --deep --strict --verbose=2 "$APP"
             test -f "dist/Countpane-${ARCH}.dSYM/Contents/Resources/DWARF/Countpane"
-            xcrun dwarfdump --uuid "$APP/Contents/MacOS/Countpane"
-            xcrun dwarfdump --uuid "dist/Countpane-${ARCH}.dSYM"
+            diff -u <(xcrun dwarfdump --uuid "$APP/Contents/MacOS/Countpane" | awk '/^UUID:/ { print $2 }' | sort) <(xcrun dwarfdump --uuid "dist/Countpane-${ARCH}.dSYM" | awk '/^UUID:/ { print $2 }' | sort)
           done
 
       - name: Measure release size

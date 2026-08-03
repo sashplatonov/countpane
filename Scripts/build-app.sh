@@ -55,6 +55,22 @@ find_dsym() {
     printf '%s\n' "$dsym"
 }
 
+verify_matching_dsym() {
+    local executable="$1"
+    local dsym="$2"
+    local executable_uuids
+    local dsym_uuids
+
+    executable_uuids="$(xcrun dwarfdump --uuid "$executable" | awk '/^UUID:/ { print $2 }' | sort)"
+    dsym_uuids="$(xcrun dwarfdump --uuid "$dsym" | awk '/^UUID:/ { print $2 }' | sort)"
+    if [[ -z "$executable_uuids" || -z "$dsym_uuids" ]] || ! diff -u \
+        <(printf '%s\n' "$executable_uuids") \
+        <(printf '%s\n' "$dsym_uuids"); then
+        echo "dSYM UUIDs do not match the packaged executable" >&2
+        exit 1
+    fi
+}
+
 cleanup() {
     rm -rf "$UNIVERSAL_BUILD_ROOT"
 }
@@ -143,5 +159,6 @@ fi
 
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_DIR"
 /usr/bin/codesign -d --entitlements - "$APP_DIR" >/dev/null
+verify_matching_dsym "$MACOS/Countpane" "$DSYM_DIR"
 
 printf 'Built %s (build %s, architectures: %s)\n' "$APP_DIR" "$BUILD_TIMESTAMP" "$ARCHS"

@@ -1,11 +1,14 @@
 cask "countpane" do
   version "VERSION"
-  if Hardware::CPU.arm?
-    url "https://github.com/sashplatonov/countpane/releases/download/v#{version}/Countpane-#{version}-arm64.dmg"
-    sha256 "ARM_SHA256"
-  else
-    url "https://github.com/sashplatonov/countpane/releases/download/v#{version}/Countpane-#{version}-x86_64.dmg"
-    sha256 "INTEL_SHA256"
+  on_macos do
+    on_arm do
+      url "https://github.com/sashplatonov/countpane/releases/download/v#{version}/Countpane-#{version}-arm64.dmg"
+      sha256 "ARM_SHA256"
+    end
+    on_intel do
+      url "https://github.com/sashplatonov/countpane/releases/download/v#{version}/Countpane-#{version}-x86_64.dmg"
+      sha256 "INTEL_SHA256"
+    end
   end
   name "Countpane"
   desc "Native countdown manager with always-on-top desktop widgets"
