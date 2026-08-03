@@ -20,10 +20,10 @@ cask "countpane" do
 
   url "https://github.com/${REPOSITORY}/releases/download/${TAG}/Countpane-${VERSION}.dmg"
   name "Countpane"
-  desc "Native macOS countdown manager with always-on-top desktop widgets"
+  desc "Native countdown manager with always-on-top desktop widgets"
   homepage "https://github.com/${REPOSITORY}"
 
-  depends_on macos: ">= :sequoia"
+  depends_on macos: :sequoia
 
   app "Countpane.app"
 
