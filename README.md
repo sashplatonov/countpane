@@ -147,6 +147,18 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
+To create and push the next release tag interactively, from a clean checkout
+run:
+
+```bash
+./Scripts/create-and-push-tag.sh
+```
+
+The script prints the current reachable tag, asks for a new `vMAJOR.MINOR.PATCH`
+tag, checks local and remote duplicates, creates an annotated tag, and pushes it
+to `origin`. Use `./Scripts/create-and-push-tag.sh --dry-run` to validate the
+input without creating or pushing a tag.
+
 Packaging uses Hardened Runtime and ad-hoc signing. A Developer ID certificate and Apple notarization are still required for distribution without Gatekeeper prompts; until they are configured, DMG and Homebrew distribution are experimental.
 
 For release maintainers, see the [release checklist](docs/RELEASE_CHECKLIST.md).

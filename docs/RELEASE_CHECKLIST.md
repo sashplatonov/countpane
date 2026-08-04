@@ -7,6 +7,8 @@
 - [ ] The release workflow is green on native `arm64` and `x86_64` runners.
 - [ ] The release tag uses semantic versioning, for example `v1.2.0`.
 - [ ] The release workflow is triggered by an existing immutable tag.
+- [ ] The release tag was created and pushed with
+      `./Scripts/create-and-push-tag.sh` from a clean checkout.
 - [ ] Native arm64 and x86_64 DMGs, both SHA-256 files, and the Homebrew Cask are attached to the release.
 - [ ] Third-party Actions remain pinned to reviewed commit SHAs.
 
