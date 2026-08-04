@@ -134,7 +134,13 @@ Build a native local DMG when testing a specific Mac architecture:
 
 ## ✅ Releases and quality
 
-GitHub Actions runs the test suite natively on Apple Silicon and Intel Macs. A semantic tag such as `v1.0.0` builds signed native arm64 and x86_64 DMGs and checksums, publishes both to a GitHub Release, and generates an architecture-aware Homebrew cask. CI also keeps a Universal app build as a compatibility check.
+GitHub Actions keeps normal feedback fast with one native Apple Silicon test
+lane and a Universal app/cask validation lane. A semantic tag such as
+`v1.0.0` runs the full native arm64 and x86_64 test matrix, builds signed
+native DMGs and checksums, publishes both to a GitHub Release, and generates an
+architecture-aware Homebrew cask. The Universal CI build is compile and
+packaging compatibility coverage; native Intel runtime proof belongs to the
+release workflow.
 
 ```bash
 git tag v1.0.0

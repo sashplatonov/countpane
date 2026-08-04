@@ -2,7 +2,9 @@
 
 ## Automated checks
 
-- [ ] GitHub Actions CI is green on the release commit for both `arm64` and `x86_64`.
+- [ ] GitHub Actions fast CI is green on the release commit, including the
+      Universal compatibility build and generated-cask audit.
+- [ ] The release workflow is green on native `arm64` and `x86_64` runners.
 - [ ] The release tag uses semantic versioning, for example `v1.2.0`.
 - [ ] The release workflow is triggered by an existing immutable tag.
 - [ ] Native arm64 and x86_64 DMGs, both SHA-256 files, and the Homebrew Cask are attached to the release.
@@ -64,4 +66,6 @@
 - [ ] The arm64 DMG launches on an Apple Silicon Mac and the x86_64 DMG launches on a supported Intel macOS test environment.
 - [ ] Homebrew selects the matching native URL and checksum on both CPU architectures.
 - [ ] `codesign -d --entitlements :-` reports the expected entitlements for both native apps.
-- [ ] The Universal CI app remains launchable and reports both architectures as a compatibility check.
+- [ ] The Universal CI app remains launchable and reports both architectures as
+      a compile and packaging compatibility check; native runtime proof is
+      supplied by the release matrix above.

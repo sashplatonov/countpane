@@ -3,51 +3,31 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - README.md
+      - SECURITY.md
+      - LICENSE
+      - docs/**
   pull_request:
+    paths-ignore:
+      - README.md
+      - SECURITY.md
+      - LICENSE
+      - docs/**
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  homebrew-cask:
-    name: Validate generated Homebrew Cask
-    runs-on: macos-15
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Render and validate Homebrew cask
-        env:
-          VALIDATION_TAP: local/countpane-validation-${{ github.run_id }}-${{ github.run_attempt }}
-        run: |
-          set -euo pipefail
-          bash -n Scripts/render-cask.sh
-          ./Scripts/render-cask.sh \
-            0.0.0-ci \
-            0000000000000000000000000000000000000000000000000000000000000000 \
-            1111111111111111111111111111111111111111111111111111111111111111 \
-            "$GITHUB_REPOSITORY" \
-            dist/countpane.rb
-          brew tap-new --no-git "$VALIDATION_TAP"
-          VALIDATION_TAP_PATH="$(brew --repository)/Library/Taps/local/homebrew-countpane-validation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          mkdir -p "$VALIDATION_TAP_PATH/Casks"
-          cp dist/countpane.rb "$VALIDATION_TAP_PATH/Casks/countpane.rb"
-          brew style --cask "$VALIDATION_TAP/countpane"
-          brew audit --cask --skip-style "$VALIDATION_TAP/countpane"
-          brew untap --force "$VALIDATION_TAP"
-
   native-tests:
-    name: Tests (${{ matrix.architecture }})
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-15
-            architecture: arm64
-          - runner: macos-15-intel
-            architecture: x86_64
-    runs-on: ${{ matrix.runner }}
+    name: Tests (arm64)
+    runs-on: macos-15
+    timeout-minutes: 15
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -67,6 +47,7 @@ jobs:
     name: Universal app bundle
     needs: native-tests
     runs-on: macos-15
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -97,40 +78,23 @@ jobs:
       - name: Measure application size
         run: ./Scripts/measure-distribution-size.sh --max-application-bytes 9000000 --max-executable-bytes 7200000 dist/Countpane.app
 
-      - name: Upload app bundle
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: Countpane-universal-app
-          path: dist/Countpane.app
-          if-no-files-found: error
-
-  native-packaging:
-    name: Native ${{ matrix.architecture }} package
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-15
-            architecture: arm64
-          - runner: macos-15-intel
-            architecture: x86_64
-    runs-on: ${{ matrix.runner }}
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Build native DMG
-        run: ./Scripts/build-dmg.sh 0.0.0-ci "${{ matrix.architecture }}"
-
-      - name: Verify native package
-        shell: bash
+      - name: Render and validate Homebrew cask
+        env:
+          VALIDATION_TAP: local/countpane-validation-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
-          APP="dist/Countpane-${{ matrix.architecture }}.app"
-          DMG="dist/Countpane-0.0.0-ci-${{ matrix.architecture }}.dmg"
-          [[ "$(lipo -archs "$APP/Contents/MacOS/Countpane")" == "${{ matrix.architecture }}" ]]
-          test -f "$APP/Contents/Resources/AppIcon.icns"
-          test ! -e "$APP/Contents/Resources/AppIcon.png"
-          test ! -e "$APP/Contents/Resources/Countpane_Countpane.bundle"
-          codesign --verify --deep --strict --verbose=2 "$APP"
-          ./Scripts/measure-distribution-size.sh --architecture "${{ matrix.architecture }}" --max-application-bytes 5400000 --max-executable-bytes 3600000 --max-dmg-bytes 3000000 "$APP" "$DMG"
-          hdiutil verify "$DMG"
+          set -euo pipefail
+          trap 'brew untap --force "$VALIDATION_TAP" >/dev/null 2>&1 || true' EXIT
+          bash -n Scripts/render-cask.sh
+          ./Scripts/render-cask.sh \
+            0.0.0-ci \
+            0000000000000000000000000000000000000000000000000000000000000000 \
+            1111111111111111111111111111111111111111111111111111111111111111 \
+            "$GITHUB_REPOSITORY" \
+            dist/countpane.rb
+          brew tap-new --no-git "$VALIDATION_TAP"
+          VALIDATION_TAP_PATH="$(brew --repository)/Library/Taps/local/homebrew-countpane-validation-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$VALIDATION_TAP_PATH/Casks"
+          cp dist/countpane.rb "$VALIDATION_TAP_PATH/Casks/countpane.rb"
+          brew style --cask "$VALIDATION_TAP/countpane"
+          brew audit --cask --skip-style "$VALIDATION_TAP/countpane"
+          brew untap --force "$VALIDATION_TAP"
