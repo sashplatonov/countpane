@@ -3,17 +3,27 @@ name: CI
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - README.md
-      - SECURITY.md
-      - LICENSE
-      - docs/**
+    paths:
+      - Package.swift
+      - Sources/**
+      - Tests/**
+      - Packaging/**
+      - Scripts/build-app.sh
+      - Scripts/build-dmg.sh
+      - Scripts/measure-distribution-size.sh
+      - Scripts/render-cask.sh
+      - .github/workflows/ci.yml
   pull_request:
-    paths-ignore:
-      - README.md
-      - SECURITY.md
-      - LICENSE
-      - docs/**
+    paths:
+      - Package.swift
+      - Sources/**
+      - Tests/**
+      - Packaging/**
+      - Scripts/build-app.sh
+      - Scripts/build-dmg.sh
+      - Scripts/measure-distribution-size.sh
+      - Scripts/render-cask.sh
+      - .github/workflows/ci.yml
   workflow_dispatch:
 
 concurrency:
