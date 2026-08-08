@@ -30,39 +30,27 @@ struct CountdownWidgetView: View {
                 .frame(width: 150, height: 150)
                 .offset(x: 112, y: -65)
 
-            VStack(alignment: .leading, spacing: 9) {
-                HStack(spacing: 9) {
+            VStack(alignment: .leading, spacing: 7) {
+                HStack(alignment: .top, spacing: 9) {
                     Image(systemName: item.symbol)
                         .font(.headline.weight(.semibold))
                         .foregroundStyle(item.theme.accent)
-                        .frame(width: 34, height: 34)
+                        .frame(width: 32, height: 32)
                         .background(.ultraThinMaterial, in: Circle())
 
                     Text(item.title)
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
-                        .lineLimit(1)
-
-                    Spacer(minLength: 4)
-
-                    Button {
-                        model.setWidgetVisible(item, false)
-                        WidgetWindowController.shared.dismiss(id: id)
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.caption.bold())
-                            .frame(width: 26, height: 26)
-                            .background(.ultraThinMaterial, in: Circle())
-                    }
-                    .buttonStyle(.plain)
-        .countpaneNoFocusRing()
-                    .help("Hide desktop widget")
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.72)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
+                .padding(.trailing, 30)
 
                 Spacer(minLength: 0)
 
                 Text(duration.compactText)
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .minimumScaleFactor(0.62)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .minimumScaleFactor(0.7)
                     .lineLimit(1)
                     .contentTransition(.numericText())
 
@@ -80,6 +68,20 @@ struct CountdownWidgetView: View {
             }
             .foregroundStyle(item.theme.foreground)
             .padding(14)
+            .overlay(alignment: .topTrailing) {
+                Button {
+                    model.setWidgetVisible(item, false)
+                    WidgetWindowController.shared.dismiss(id: id)
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.caption.bold())
+                        .frame(width: 26, height: 26)
+                        .background(.ultraThinMaterial, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .countpaneNoFocusRing()
+                .help("Hide desktop widget")
+            }
         }
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay {
