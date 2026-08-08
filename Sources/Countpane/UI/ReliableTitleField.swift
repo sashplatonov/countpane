@@ -127,8 +127,7 @@ struct EditorWindowActivationView: NSViewRepresentable {
 
 final class EditorWindowObserver: NSView {
     private var activationTask: Task<Void, Never>?
-    private var localMouseMonitor: Any?
-    private var globalMouseMonitor: Any?
+    private let mouseMonitors = EditorWindowMouseMonitors()
     var onOutsideClick: () -> Void
 
     init(onOutsideClick: @escaping () -> Void) {
@@ -157,39 +156,26 @@ final class EditorWindowObserver: NSView {
         }
     }
 
-    isolated deinit {
+    deinit {
         activationTask?.cancel()
-        if let localMouseMonitor {
-            NSEvent.removeMonitor(localMouseMonitor)
-        }
-        if let globalMouseMonitor {
-            NSEvent.removeMonitor(globalMouseMonitor)
-        }
     }
 
     private func installMouseMonitors() {
         let eventMask: NSEvent.EventTypeMask = [.leftMouseDown, .rightMouseDown]
 
-        localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: eventMask) { [weak self] event in
+        mouseMonitors.local = NSEvent.addLocalMonitorForEvents(matching: eventMask) { [weak self] event in
             self?.handleOutsideClick(event)
             return event
         }
 
-        globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: eventMask) { [weak self] _ in
+        mouseMonitors.global = NSEvent.addGlobalMonitorForEvents(matching: eventMask) { [weak self] _ in
             guard let self, let window = self.window, !window.frame.contains(NSEvent.mouseLocation) else { return }
             self.onOutsideClick()
         }
     }
 
     private func removeMouseMonitors() {
-        if let localMouseMonitor {
-            NSEvent.removeMonitor(localMouseMonitor)
-            self.localMouseMonitor = nil
-        }
-        if let globalMouseMonitor {
-            NSEvent.removeMonitor(globalMouseMonitor)
-            self.globalMouseMonitor = nil
-        }
+        mouseMonitors.remove()
     }
 
     private func handleOutsideClick(_ event: NSEvent) {
@@ -205,5 +191,25 @@ final class EditorWindowObserver: NSView {
         return eventWindow == editorWindow ||
             eventWindow.sheetParent == editorWindow ||
             editorWindow.childWindows?.contains(eventWindow) == true
+    }
+}
+
+private final class EditorWindowMouseMonitors {
+    var local: Any?
+    var global: Any?
+
+    func remove() {
+        if let local {
+            NSEvent.removeMonitor(local)
+            self.local = nil
+        }
+        if let global {
+            NSEvent.removeMonitor(global)
+            self.global = nil
+        }
+    }
+
+    deinit {
+        remove()
     }
 }
