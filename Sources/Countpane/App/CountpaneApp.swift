@@ -7,7 +7,7 @@ struct CountpaneApp: App {
     @State private var model = AppModel.shared
 
     var body: some Scene {
-        WindowGroup("Countpane", id: "main") {
+        Window("Countpane", id: "main") {
             RootView()
                 .environment(model)
                 .frame(minWidth: 700, minHeight: 500)
