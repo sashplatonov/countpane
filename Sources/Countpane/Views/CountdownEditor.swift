@@ -3,11 +3,13 @@ import SwiftUI
 struct CountdownEditor: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("appTheme") private var appTheme = AppTheme.system.rawValue
+    private let originalItem: CountdownItem
     @State private var draft: CountdownItem
     @State private var title: String
     @State private var showUrgencySettings = false
     @State private var showThemePicker = false
     @State private var showDatePicker = false
+    @State private var showUnsavedChangesAlert = false
 
     let onSave: (CountdownItem) -> Void
 
@@ -21,6 +23,7 @@ struct CountdownEditor: View {
             title: "",
             targetDate: Calendar.autoupdatingCurrent.date(byAdding: .day, value: 30, to: .now) ?? .now
         )
+        originalItem = initialItem
         _draft = State(initialValue: initialItem)
         _title = State(initialValue: initialItem.title)
         self.onSave = onSave
@@ -40,6 +43,14 @@ struct CountdownEditor: View {
 
     private var canSave: Bool {
         !trimmedTitle.isEmpty && thresholdsValid
+    }
+
+    private var hasChanges: Bool {
+        CountdownEditorDraft.hasChanges(
+            original: originalItem,
+            draft: draft,
+            title: title
+        )
     }
 
     var body: some View {
@@ -62,11 +73,20 @@ struct CountdownEditor: View {
         .frame(width: 640, height: 680)
         .background {
             theme.canvas.ignoresSafeArea()
-            EditorWindowActivationView()
+            EditorWindowActivationView(onOutsideClick: requestClose)
                 .frame(width: 0, height: 0)
         }
         .tint(theme.accent)
         .preferredColorScheme(theme.colorScheme)
+        .interactiveDismissDisabled(hasChanges)
+        .alert("Unsaved Changes", isPresented: $showUnsavedChangesAlert) {
+            Button("Save") { saveDraft() }
+                .disabled(!canSave)
+            Button("Don’t Save", role: .destructive) { dismiss() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Do you want to save your changes before closing this countdown?")
+        }
     }
 
     private var editorHeader: some View {
@@ -86,6 +106,17 @@ struct CountdownEditor: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
+
+            Button(action: requestClose) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 12, weight: .bold))
+                    .frame(width: 30, height: 30)
+                    .background(.ultraThinMaterial, in: Circle())
+            }
+            .buttonStyle(.plain)
+            .countpaneNoFocusRing()
+            .help("Close editor")
+            .accessibilityLabel("Close editor")
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 15)
@@ -301,7 +332,7 @@ struct CountdownEditor: View {
     private var actionBar: some View {
         HStack {
             Button("Cancel", role: .cancel) {
-                dismiss()
+                requestClose()
             }
             .buttonStyle(ThemeSecondaryButtonStyle(theme: theme))
         .countpaneNoFocusRing()
@@ -316,10 +347,7 @@ struct CountdownEditor: View {
             }
 
             Button("Save") {
-                draft.title = trimmedTitle
-                draft.normalizeThresholds()
-                onSave(draft)
-                dismiss()
+                saveDraft()
             }
             .buttonStyle(ThemePrimaryButtonStyle(theme: theme))
         .countpaneNoFocusRing()
@@ -330,6 +358,23 @@ struct CountdownEditor: View {
         .padding(.vertical, 13)
         .background(theme.surface.opacity(0.92))
         .overlay(alignment: .top) { Divider().opacity(0.35) }
+    }
+
+    private func requestClose() {
+        guard !showUnsavedChangesAlert else { return }
+        if hasChanges {
+            showUnsavedChangesAlert = true
+        } else {
+            dismiss()
+        }
+    }
+
+    private func saveDraft() {
+        guard canSave else { return }
+        draft.title = trimmedTitle
+        draft.normalizeThresholds()
+        onSave(draft)
+        dismiss()
     }
 
     private var presetButtons: some View {
@@ -347,6 +392,16 @@ struct CountdownEditor: View {
                 .controlSize(.small)
             }
         }
+    }
+}
+
+enum CountdownEditorDraft {
+    static func hasChanges(
+        original: CountdownItem,
+        draft: CountdownItem,
+        title: String
+    ) -> Bool {
+        draft != original || title != original.title
     }
 }
 

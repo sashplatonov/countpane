@@ -114,20 +114,39 @@ final class TitleFieldContainer: NSView {
 }
 
 struct EditorWindowActivationView: NSViewRepresentable {
+    let onOutsideClick: () -> Void
+
     func makeNSView(context: Context) -> EditorWindowObserver {
-        EditorWindowObserver()
+        EditorWindowObserver(onOutsideClick: onOutsideClick)
     }
 
-    func updateNSView(_ nsView: EditorWindowObserver, context: Context) {}
+    func updateNSView(_ nsView: EditorWindowObserver, context: Context) {
+        nsView.onOutsideClick = onOutsideClick
+    }
 }
 
 final class EditorWindowObserver: NSView {
     private var activationTask: Task<Void, Never>?
+    private var localMouseMonitor: Any?
+    private var globalMouseMonitor: Any?
+    var onOutsideClick: () -> Void
+
+    init(onOutsideClick: @escaping () -> Void) {
+        self.onOutsideClick = onOutsideClick
+        super.init(frame: .zero)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         activationTask?.cancel()
+        removeMouseMonitors()
         guard window != nil else { return }
+
+        installMouseMonitors()
 
         activationTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .milliseconds(80))
@@ -138,7 +157,53 @@ final class EditorWindowObserver: NSView {
         }
     }
 
-    deinit {
+    isolated deinit {
         activationTask?.cancel()
+        if let localMouseMonitor {
+            NSEvent.removeMonitor(localMouseMonitor)
+        }
+        if let globalMouseMonitor {
+            NSEvent.removeMonitor(globalMouseMonitor)
+        }
+    }
+
+    private func installMouseMonitors() {
+        let eventMask: NSEvent.EventTypeMask = [.leftMouseDown, .rightMouseDown]
+
+        localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: eventMask) { [weak self] event in
+            self?.handleOutsideClick(event)
+            return event
+        }
+
+        globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: eventMask) { [weak self] _ in
+            guard let self, let window = self.window, !window.frame.contains(NSEvent.mouseLocation) else { return }
+            self.onOutsideClick()
+        }
+    }
+
+    private func removeMouseMonitors() {
+        if let localMouseMonitor {
+            NSEvent.removeMonitor(localMouseMonitor)
+            self.localMouseMonitor = nil
+        }
+        if let globalMouseMonitor {
+            NSEvent.removeMonitor(globalMouseMonitor)
+            self.globalMouseMonitor = nil
+        }
+    }
+
+    private func handleOutsideClick(_ event: NSEvent) {
+        guard let window, !isInEditorWindow(event, editorWindow: window) else { return }
+        onOutsideClick()
+    }
+
+    private func isInEditorWindow(_ event: NSEvent, editorWindow: NSWindow) -> Bool {
+        guard let eventWindow = event.window else {
+            return editorWindow.frame.contains(NSEvent.mouseLocation)
+        }
+
+        return eventWindow == editorWindow ||
+            eventWindow.sheetParent == editorWindow ||
+            editorWindow.childWindows?.contains(eventWindow) == true
     }
 }
