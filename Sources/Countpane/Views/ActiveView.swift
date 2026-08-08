@@ -59,8 +59,6 @@ struct ActiveView: View {
 
 struct CountdownCard: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var attentionPhase = false
     @State private var isHovering = false
     @AppStorage("appTheme") private var appTheme = AppTheme.ink.rawValue
 
@@ -74,9 +72,9 @@ struct CountdownCard: View {
     private var urgency: CountdownUrgency { item.urgency(from: now) }
     private var duration: CountdownDuration { item.remainingDuration(from: now) }
     private var progress: Double? { item.progress(at: now) }
-    private var isAttentionWindow: Bool {
-        guard item.attentionEnabled, urgency != .normal, !reduceMotion else { return false }
-        return [10, 15, 20].contains(Calendar.autoupdatingCurrent.component(.hour, from: now))
+    private var pulseInterval: TimeInterval? {
+        guard item.attentionEnabled else { return nil }
+        return urgency.pulseInterval
     }
 
     var body: some View {
@@ -90,19 +88,10 @@ struct CountdownCard: View {
         .clipShape(.rect(cornerRadius: density == .compactRow ? 15 : 18))
         .overlay { cardBorder }
         .shadow(color: .black.opacity(isHovering ? 0.24 : 0.14), radius: isHovering ? 18 : 10, y: isHovering ? 9 : 5)
-        .scaleEffect(isAttentionWindow && attentionPhase ? 1.005 : 1)
+        .gentlePulse(every: pulseInterval)
         .offset(y: isHovering ? -1 : 0)
         .animation(.easeOut(duration: 0.16), value: isHovering)
         .onHover { isHovering = $0 }
-        .task(id: isAttentionWindow) {
-            guard isAttentionWindow else { attentionPhase = false; return }
-            for _ in 0..<2 {
-                withAnimation(.easeInOut(duration: 1.6)) { attentionPhase = true }
-                do { try await Task.sleep(for: .seconds(1.6)) } catch { return }
-                withAnimation(.easeInOut(duration: 1.6)) { attentionPhase = false }
-                do { try await Task.sleep(for: .seconds(1.6)) } catch { return }
-            }
-        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(item.title), \(duration.accessibilityText), \(urgency.rawValue)")
         .contextMenu { cardActions }

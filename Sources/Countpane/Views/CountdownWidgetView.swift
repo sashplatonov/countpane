@@ -89,6 +89,7 @@ struct CountdownWidgetView: View {
                 .stroke(.white.opacity(item.theme.isDark ? 0.12 : 0.34), lineWidth: 1)
         }
         .shadow(color: .black.opacity(0.18), radius: 18, y: 8)
+        .gentlePulse(every: item.attentionEnabled ? urgency.pulseInterval : nil)
         .padding(12)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(item.title), \(duration.accessibilityText)")

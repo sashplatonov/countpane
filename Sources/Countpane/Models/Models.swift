@@ -120,6 +120,15 @@ enum CountdownUrgency: String, CaseIterable, Sendable {
     case normal = "On Track", soon = "Coming Soon", hurry = "Time to Hurry", almost = "Almost There", overdue = "Overdue"
     var icon: String { switch self { case .normal: "checkmark.circle"; case .soon: "sparkles"; case .hurry: "bolt.fill"; case .almost: "flag.checkered"; case .overdue: "exclamationmark.triangle.fill" } }
     var emphasis: Double { switch self { case .normal: 0; case .soon: 0.08; case .hurry: 0.16; case .almost: 0.25; case .overdue: 0.30 } }
+    var pulseInterval: TimeInterval? {
+        switch self {
+        case .normal: nil
+        case .soon: 3 * 60 * 60
+        case .hurry: 90 * 60
+        case .almost: 30 * 60
+        case .overdue: 15 * 60
+        }
+    }
 }
 
 enum AppSection: String, CaseIterable, Identifiable {

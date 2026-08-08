@@ -248,7 +248,7 @@ struct CountdownEditor: View {
                 isOn: $draft.attentionEnabled,
                 theme: theme
             )
-            .help("Briefly highlights urgent countdowns a few times per day")
+            .help("Briefly pulses urgent countdowns at an urgency-based interval")
 
             Divider().opacity(0.45)
 

@@ -65,4 +65,13 @@ struct UrgencyTests {
         #expect(item.hurryThreshold == 1)
         #expect(item.soonThreshold == 2)
     }
+
+    @Test("Pulse intervals become shorter as urgency increases")
+    func pulseIntervals() {
+        #expect(CountdownUrgency.normal.pulseInterval == nil)
+        #expect(CountdownUrgency.soon.pulseInterval == 10_800.0)
+        #expect(CountdownUrgency.hurry.pulseInterval == 5_400.0)
+        #expect(CountdownUrgency.almost.pulseInterval == 1_800.0)
+        #expect(CountdownUrgency.overdue.pulseInterval == 900.0)
+    }
 }
