@@ -37,10 +37,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var pendingInitialLoadTermination = false
     func applicationWillFinishLaunching(_ notification: Notification) {
         installApplicationIcon()
-
-        // Keep Countpane in the menu bar without creating a Dock tile. Windows
-        // opened from the menu bar can still become key after activation.
-        NSApp.setActivationPolicy(.accessory)
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {

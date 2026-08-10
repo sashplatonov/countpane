@@ -135,6 +135,11 @@ fi
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$CONTENTS/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CountpaneBuildTimestamp $BUILD_TIMESTAMP" "$CONTENTS/Info.plist"
 
+if [[ "$(/usr/libexec/PlistBuddy -c 'Print :LSUIElement' "$CONTENTS/Info.plist")" != "true" ]]; then
+    echo "Countpane must declare LSUIElement for its menu-bar lifecycle" >&2
+    exit 1
+fi
+
 chmod +x "$MACOS/Countpane"
 
 SIGNING_ARGS=(
