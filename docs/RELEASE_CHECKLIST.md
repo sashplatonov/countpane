@@ -22,6 +22,10 @@
 - [ ] Title receives initial keyboard focus in the editor.
 - [ ] Keyboard input remains reliable after reopening the management window, and no Dock tile appears.
 - [ ] Desktop widgets open, remain above normal windows, move, and restore their positions.
+- [ ] A visible widget shows the countdown progress as a rounded, segmented contour around its perimeter at 0%, partial, and 100% progress.
+- [ ] A widget with unavailable progress has no empty contour, and its close control and drag behavior remain usable.
+- [ ] Active countdowns show the same perimeter progress in both Compact Row and Card Grid; the grid view has no duplicate horizontal progress bar.
+- [ ] Perimeter progress remains legible across light, dark, and adaptive countdown themes without obscuring titles or actions.
 - [ ] Closing the management window keeps enabled widgets running.
 - [ ] Quitting immediately after an edit preserves the latest change.
 - [ ] Choosing **Quit Countpane** removes the menu-bar icon; relaunching shows the edited countdown still present.

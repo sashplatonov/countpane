@@ -181,7 +181,7 @@ git commit -m "feat(countdowns): use perimeter progress"
 
 ## P2-1: Record visual release checks and run the final quality gate
 
-**Status:** ⬜ Not started
+**Status:** 🚧 In progress
 **Priority:** P2
 **Depends on:** P1-2, P1-3
 
