@@ -181,9 +181,11 @@ git commit -m "feat(countdowns): use perimeter progress"
 
 ## P2-1: Record visual release checks and run the final quality gate
 
-**Status:** 🚧 In progress
+**Status:** ✅ Completed
 **Priority:** P2
 **Depends on:** P1-2, P1-3
+
+**Visual smoke check:** Waived by user; local automated verification and packaged-app launch completed.
 
 ### Outcome
 
