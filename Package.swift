@@ -11,6 +11,11 @@ let package = Package(
             path: "Sources/Countpane",
             exclude: ["Resources"]
         ),
-        .testTarget(name: "CountpaneTests", dependencies: ["Countpane"], path: "Tests/CountpaneTests")
+        .testTarget(
+            name: "CountpaneTests",
+            dependencies: ["Countpane"],
+            path: "Tests/CountpaneTests",
+            resources: [.process("Fixtures")]
+        )
     ]
 )

@@ -100,6 +100,18 @@ struct JSONTransferTests {
         }
     }
 
+    @Test("Checked-in fixtures cover current and retired backup contracts")
+    func contractFixtures() throws {
+        let currentURL = try #require(Bundle.module.url(forResource: "current-backup", withExtension: "json"))
+        let current = try CountpaneJSONTransfer.decode(Data(contentsOf: currentURL))
+        #expect(current.items.map(\.title) == ["Fixture Countdown"])
+
+        let unsupportedURL = try #require(Bundle.module.url(forResource: "unsupported-backup", withExtension: "json"))
+        #expect(throws: CountpaneTransferError.unsupportedFormat(2)) {
+            try CountpaneJSONTransfer.decode(Data(contentsOf: unsupportedURL))
+        }
+    }
+
     @Test("Replacing data persists first and then updates the model")
     @MainActor
     func replaceAll() async throws {

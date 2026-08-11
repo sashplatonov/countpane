@@ -191,7 +191,7 @@ git commit -m "fix(import): Validate backup boundaries"
 
 ## P2-1: Add durable migration and transfer regression fixtures
 
-**Status:** ⬜ Not started  
+**Status:** ✅ Completed
 **Priority:** P2  
 **Depends on:** P1-1
 
@@ -210,7 +210,7 @@ real-user data.
 
 ### Files
 
-- Create `Tests/CountpaneTests/Fixtures/pre-created-at.sqlite3`.
+- Create `Tests/CountpaneTests/Fixtures/pre-created-at.sql`.
 - Create `Tests/CountpaneTests/Fixtures/current-backup.json`.
 - Create `Tests/CountpaneTests/Fixtures/unsupported-backup.json`.
 - Modify `Tests/CountpaneTests/PersistenceTests.swift`.
@@ -247,7 +247,7 @@ git diff --check
 ### Commit
 
 ```bash
-git add Package.swift Tests/CountpaneTests/Fixtures/pre-created-at.sqlite3 Tests/CountpaneTests/Fixtures/current-backup.json Tests/CountpaneTests/Fixtures/unsupported-backup.json Tests/CountpaneTests/PersistenceTests.swift Tests/CountpaneTests/JSONTransferTests.swift
+git add Package.swift Tests/CountpaneTests/Fixtures/pre-created-at.sql Tests/CountpaneTests/Fixtures/current-backup.json Tests/CountpaneTests/Fixtures/unsupported-backup.json Tests/CountpaneTests/PersistenceTests.swift Tests/CountpaneTests/JSONTransferTests.swift
 git commit -m "test(data): Add migration fixtures"
 ```
 

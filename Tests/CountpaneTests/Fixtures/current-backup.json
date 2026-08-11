@@ -1,0 +1,23 @@
+{
+  "exportedAt": 0,
+  "formatVersion": 3,
+  "items": [
+    {
+      "attentionEnabled": true,
+      "completedAt": null,
+      "createdAt": 0,
+      "id": "22222222-2222-2222-2222-222222222222",
+      "isCompleted": false,
+      "isPinned": false,
+      "isWidgetVisible": true,
+      "note": "Synthetic fixture",
+      "soonThreshold": 14,
+      "hurryThreshold": 7,
+      "almostThreshold": 3,
+      "symbol": "star",
+      "targetDate": 86400,
+      "theme": "Ocean Light",
+      "title": "Fixture Countdown"
+    }
+  ]
+}
