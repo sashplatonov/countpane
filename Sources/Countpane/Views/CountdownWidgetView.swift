@@ -5,11 +5,13 @@ struct CountdownWidgetView: View {
     @Environment(AppModel.self) private var model
     let id: UUID
 
+    static let contentSize = CGSize(width: 270, height: 160)
+
     var body: some View {
         TimelineView(.periodic(from: .now, by: 3600)) { context in
             if let item = model.item(id: id), !item.isCompleted, item.isWidgetVisible {
                 widget(item, now: context.date)
-                    .frame(width: 270, height: 160)
+                    .frame(width: Self.contentSize.width, height: Self.contentSize.height)
             } else {
                 Color.clear
                     .frame(width: 1, height: 1)
@@ -21,6 +23,7 @@ struct CountdownWidgetView: View {
     private func widget(_ item: CountdownItem, now: Date) -> some View {
         let duration = item.remainingDuration(from: now)
         let urgency = item.urgency(from: now)
+        let progress = item.progress(at: now)
 
         return ZStack {
             item.theme.gradient
@@ -84,6 +87,14 @@ struct CountdownWidgetView: View {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay {
+            CountdownPerimeterProgress(
+                progress: progress,
+                theme: item.theme,
+                cornerRadius: 22,
+                lineWidth: 2
+            )
+        }
         .overlay {
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .stroke(.white.opacity(item.theme.isDark ? 0.12 : 0.34), lineWidth: 1)

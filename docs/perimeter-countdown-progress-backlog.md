@@ -75,7 +75,7 @@ git commit -m "feat(progress): add perimeter indicator"
 
 ## P1-2: Add perimeter progress to the desktop widget
 
-**Status:** ⬜ Not started
+**Status:** ✅ Completed
 **Priority:** P1
 **Depends on:** P1-1
 
