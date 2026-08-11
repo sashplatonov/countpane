@@ -5,7 +5,7 @@ struct CountdownWidgetView: View {
     let id: UUID
 
     static let contentSize = CGSize(width: 270, height: 160)
-    static let closeButtonHitSize: CGFloat = 44
+    static let closeButtonHitSize = WidgetWindowDragRegion.closeButtonHitSize
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 3600)) { context in

@@ -35,7 +35,7 @@ final class WidgetWindowController: NSObject, NSWindowDelegate {
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
-        panel.isMovableByWindowBackground = true
+        panel.isMovableByWindowBackground = false
         panel.hidesOnDeactivate = false
         panel.contentView = NSHostingView(
             rootView: CountdownWidgetView(id: id).environment(AppModel.shared)
@@ -77,6 +77,44 @@ final class WidgetWindowController: NSObject, NSWindowDelegate {
 private final class WidgetPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
+
+    private static let performWindowDragSelector = NSSelectorFromString("performWindowDragWithEvent:")
+
+    override func sendEvent(_ event: NSEvent) {
+        guard event.type == .leftMouseDown,
+              let contentView,
+              responds(to: Self.performWindowDragSelector) else {
+            super.sendEvent(event)
+            return
+        }
+
+        let location = contentView.convert(event.locationInWindow, from: nil)
+        guard WidgetWindowDragRegion.shouldBeginDrag(at: location, in: contentView.bounds.size) else {
+            super.sendEvent(event)
+            return
+        }
+
+        perform(Self.performWindowDragSelector, with: event)
+    }
+}
+
+enum WidgetWindowDragRegion {
+    static let outerInset: CGFloat = 12
+    static let closeButtonHitSize: CGFloat = 44
+
+    static func shouldBeginDrag(at location: CGPoint, in contentSize: CGSize) -> Bool {
+        !closeButtonFrame(in: contentSize).contains(location)
+    }
+
+    static func closeButtonFrame(in contentSize: CGSize) -> CGRect {
+        let size = closeButtonHitSize
+        return CGRect(
+            x: contentSize.width - outerInset - size,
+            y: contentSize.height - outerInset - size,
+            width: size,
+            height: size
+        )
+    }
 }
 
 struct WidgetWindowPositionStore {

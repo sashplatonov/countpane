@@ -18,4 +18,12 @@ struct WidgetWindowPositionStoreTests {
         #expect(store.origin(for: id) == expected)
         #expect(store.origin(for: UUID()) == nil)
     }
+
+    @Test("Widget drag keeps the close button interactive")
+    func dragRegion() {
+        let contentSize = CGSize(width: 294, height: 184)
+
+        #expect(WidgetWindowDragRegion.shouldBeginDrag(at: CGPoint(x: 40, y: 40), in: contentSize))
+        #expect(!WidgetWindowDragRegion.shouldBeginDrag(at: CGPoint(x: 260, y: 150), in: contentSize))
+    }
 }
