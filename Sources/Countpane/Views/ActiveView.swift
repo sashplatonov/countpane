@@ -72,6 +72,9 @@ struct CountdownCard: View {
     private var urgency: CountdownUrgency { item.urgency(from: now) }
     private var duration: CountdownDuration { item.remainingDuration(from: now) }
     private var progress: Double? { item.progress(at: now) }
+    private var progressAccessibilityValue: String {
+        CountdownPerimeterProgressValue(progress).accessibilityValue ?? ""
+    }
     private var pulseInterval: TimeInterval? {
         guard item.attentionEnabled else { return nil }
         return urgency.pulseInterval
@@ -102,6 +105,7 @@ struct CountdownCard: View {
         .onHover { isHovering = $0 }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(item.title), \(duration.accessibilityText), \(urgency.rawValue)")
+        .accessibilityValue(progressAccessibilityValue)
         .contextMenu { cardActions }
     }
 

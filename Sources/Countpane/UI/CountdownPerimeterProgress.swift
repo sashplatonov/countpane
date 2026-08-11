@@ -11,6 +11,10 @@ struct CountdownPerimeterProgressValue: Equatable, Sendable {
         guard let normalized else { return false }
         return normalized > 0
     }
+
+    var accessibilityValue: String? {
+        normalized.map { "\(Int(($0 * 100).rounded())) percent elapsed" }
+    }
 }
 
 struct CountdownPerimeterProgress: View {

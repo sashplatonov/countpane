@@ -103,5 +103,6 @@ struct CountdownWidgetView: View {
         .padding(12)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(item.title), \(duration.accessibilityText)")
+        .accessibilityValue(CountdownPerimeterProgressValue(progress).accessibilityValue ?? "")
     }
 }

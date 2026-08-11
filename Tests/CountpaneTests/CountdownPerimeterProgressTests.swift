@@ -9,6 +9,7 @@ struct CountdownPerimeterProgressTests {
 
         #expect(value.normalized == nil)
         #expect(!value.showsActiveSegment)
+        #expect(value.accessibilityValue == nil)
     }
 
     @Test("Progress keeps valid values and hides the active segment at zero")
@@ -21,8 +22,10 @@ struct CountdownPerimeterProgressTests {
         #expect(!zero.showsActiveSegment)
         #expect(partial.normalized == 0.5)
         #expect(partial.showsActiveSegment)
+        #expect(partial.accessibilityValue == "50 percent elapsed")
         #expect(complete.normalized == 1)
         #expect(complete.showsActiveSegment)
+        #expect(complete.accessibilityValue == "100 percent elapsed")
     }
 
     @Test("Progress is clamped to the perimeter bounds")
