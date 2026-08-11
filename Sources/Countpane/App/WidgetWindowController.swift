@@ -8,6 +8,24 @@ final class WidgetWindowController: NSObject, NSWindowDelegate {
     private let positionStore = WidgetWindowPositionStore()
     private var windows: [UUID: WidgetPanel] = [:]
 
+    override init() {
+        super.init()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(screenParametersDidChange(_:)),
+            name: NSApplication.didChangeScreenParametersNotification,
+            object: nil
+        )
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: NSApplication.didChangeScreenParametersNotification, object: nil)
+    }
+
+    @objc private func screenParametersDidChange(_ notification: Notification) {
+        rehomeWindows()
+    }
+
     func sync(with items: [CountdownItem]) {
         let visibleItems = items.filter { !$0.isCompleted && $0.isWidgetVisible }
         let visibleIDs = Set(visibleItems.map(\.id))
@@ -41,11 +59,7 @@ final class WidgetWindowController: NSObject, NSWindowDelegate {
             rootView: CountdownWidgetView(id: id).environment(AppModel.shared)
         )
 
-        if let origin = positionStore.origin(for: id) {
-            panel.setFrameOrigin(origin)
-        } else {
-            panel.setFrameOrigin(initialOrigin(at: initialPositionIndex))
-        }
+        panel.setFrameOrigin(origin(for: id, initialPositionIndex: initialPositionIndex))
 
         windows[id] = panel
         panel.orderFrontRegardless()
@@ -65,11 +79,56 @@ final class WidgetWindowController: NSObject, NSWindowDelegate {
 
     private static let widgetSize = NSSize(width: 294, height: 184)
 
-    private func initialOrigin(at index: Int) -> CGPoint {
-        let screenFrame = NSScreen.main?.visibleFrame ?? .zero
+    private func origin(for id: UUID, initialPositionIndex: Int) -> CGPoint {
+        WidgetWindowPlacement.origin(
+            for: positionStore.origin(for: id),
+            widgetSize: Self.widgetSize,
+            screenFrames: NSScreen.screens.map(\.visibleFrame),
+            fallbackIndex: initialPositionIndex
+        )
+    }
+
+    private func rehomeWindows() {
+        for (id, panel) in windows {
+            let origin = self.origin(for: id, initialPositionIndex: 0)
+            if panel.frame.origin != origin {
+                panel.setFrameOrigin(origin)
+            }
+        }
+    }
+}
+
+enum WidgetWindowPlacement {
+    static func origin(
+        for storedOrigin: CGPoint?,
+        widgetSize: CGSize,
+        screenFrames: [CGRect],
+        fallbackIndex: Int,
+        edgeInset: CGFloat = 24
+    ) -> CGPoint {
+        guard !screenFrames.isEmpty else { return storedOrigin ?? .zero }
+
+        if let storedOrigin {
+            let storedFrame = CGRect(origin: storedOrigin, size: widgetSize)
+            if let screen = screenFrames.first(where: { $0.intersects(storedFrame) }) {
+                return clamped(storedOrigin, widgetSize: widgetSize, in: screen)
+            }
+        }
+
+        let screen = screenFrames[max(0, fallbackIndex) % screenFrames.count]
+        let proposed = CGPoint(
+            x: screen.maxX - widgetSize.width - edgeInset,
+            y: screen.maxY - widgetSize.height - 72 - CGFloat(max(0, fallbackIndex)) * 24
+        )
+        return clamped(proposed, widgetSize: widgetSize, in: screen)
+    }
+
+    private static func clamped(_ origin: CGPoint, widgetSize: CGSize, in screen: CGRect) -> CGPoint {
+        let maxX = max(screen.minX, screen.maxX - widgetSize.width)
+        let maxY = max(screen.minY, screen.maxY - widgetSize.height)
         return CGPoint(
-            x: screenFrame.maxX - Self.widgetSize.width - 24,
-            y: screenFrame.maxY - Self.widgetSize.height - 72 - CGFloat(index) * 24
+            x: min(max(origin.x, screen.minX), maxX),
+            y: min(max(origin.y, screen.minY), maxY)
         )
     }
 }

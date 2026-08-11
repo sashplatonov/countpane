@@ -253,7 +253,7 @@ git commit -m "test(data): Add migration fixtures"
 
 ## P2-2: Restore widgets safely across display changes
 
-**Status:** ⬜ Not started  
+**Status:** ✅ Completed
 **Priority:** P2  
 **Depends on:** -
 
