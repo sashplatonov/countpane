@@ -51,7 +51,7 @@ configuration are explicitly out of scope for this backlog.
 
 ## P1-1: Canonicalize countdown creation dates and remove the legacy flow
 
-**Status:** ✅ Completed  
+**Status:** ✅ Completed
 **Priority:** P1  
 **Depends on:** -
 
@@ -557,44 +557,39 @@ git add README.md docs/app-preview.png docs/social-preview.png docs/manual-macos
 git commit -m "docs: Showcase native widget workflow"
 ```
 
-## P3-1: Narrow application-service injection for integration coverage
+## P3-1: Prove existing application-service isolation seams
 
-**Status:** ⬜ Not started  
+**Status:** ✅ Completed
 **Priority:** P3  
 **Depends on:** P1-2
 
 ### Outcome
 
-New integration/UI tests can supply isolated persistence and update services
-without mutating global shared instances. Production app startup remains simple
-and has one authoritative service graph.
+The existing injectable `AppModel` and `UpdateController` initializers have
+explicit regression coverage proving isolated persistence, defaults, and update
+state. Production app startup remains simple and has one authoritative service
+graph.
 
 ### Architectural decision
 
-Create dependencies once at the SwiftUI/AppKit composition root and pass them
-only where tests need isolation. Do not introduce screen-specific view models,
+Reuse the existing `CountdownStoring`, `AppModel` initializer, and
+`UpdateController` initializer. Do not introduce screen-specific view models,
 repositories beyond `CountdownStoring`, duplicate state, or an abstract
-container framework.
+container framework when the current seams already isolate tests.
 
 ### Files
 
-- Modify `Sources/Countpane/App/CountpaneApp.swift`.
-- Modify `Sources/Countpane/Services/AppModel.swift` only if a small public
-  factory/initializer seam is required.
-- Modify `Sources/Countpane/Services/UpdateController.swift` only if a small
-  factory/initializer seam is required.
 - Modify `Tests/CountpaneTests/AppModelRegressionTests.swift`.
 - Modify `Tests/CountpaneTests/UpdateTests.swift`.
 
 ### Work
 
-1. Identify the minimum global accesses that prevent a clean integration test.
-2. Replace only those accesses with composition-root supplied instances while
-   preserving `AppModel` as UI state owner and `UpdateController` as update
-   state owner.
-3. Add a regression proving two test app graphs do not share SQLite paths,
-   defaults, timer state, or update status.
-4. Leave production behavior and user-visible state unchanged.
+1. Add a regression proving two test models do not share SQLite paths or
+   countdown state.
+2. Add a regression proving two update controllers do not share defaults,
+   timer state, or update status.
+3. Leave production behavior and user-visible state unchanged; if the tests
+   expose no missing seam, do not add a new abstraction.
 
 ### Acceptance criteria
 
@@ -617,8 +612,8 @@ git diff --check
 ### Commit
 
 ```bash
-git add Sources/Countpane/App/CountpaneApp.swift Sources/Countpane/Services/AppModel.swift Sources/Countpane/Services/UpdateController.swift Tests/CountpaneTests/AppModelRegressionTests.swift Tests/CountpaneTests/UpdateTests.swift
-git commit -m "refactor(app): Isolate service composition"
+git add Tests/CountpaneTests/AppModelRegressionTests.swift Tests/CountpaneTests/UpdateTests.swift
+git commit -m "test(app): Prove service isolation"
 ```
 
 ## Final quality gate

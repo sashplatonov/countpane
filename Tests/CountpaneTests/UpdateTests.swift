@@ -113,6 +113,31 @@ struct UpdateTests {
         #expect(!defaults.bool(forKey: "update.automaticChecksEnabled"))
     }
 
+    @Test("Independent controllers keep update preferences isolated")
+    @MainActor
+    func isolatedControllersDoNotShareState() {
+        let firstDefaults = isolatedDefaults()
+        let secondDefaults = isolatedDefaults()
+        let first = UpdateController(
+            releaseClient: FakeReleaseClient(result: .success(release("v1.0.0"))),
+            channelDetector: FixedChannelDetector(channel: .development),
+            homebrewUpdater: FakeHomebrewUpdater(result: .success("")),
+            defaults: firstDefaults
+        )
+        let second = UpdateController(
+            releaseClient: FakeReleaseClient(result: .success(release("v1.0.0"))),
+            channelDetector: FixedChannelDetector(channel: .development),
+            homebrewUpdater: FakeHomebrewUpdater(result: .success("")),
+            defaults: secondDefaults
+        )
+
+        first.setAutomaticChecksEnabled(false)
+
+        #expect(!first.automaticChecksEnabled)
+        #expect(second.automaticChecksEnabled)
+        #expect(!secondDefaults.bool(forKey: "update.automaticChecksEnabled"))
+    }
+
     @Test("Disabled automatic checks do no background work")
     @MainActor
     func automaticOptOutAvoidsBackgroundWork() async {

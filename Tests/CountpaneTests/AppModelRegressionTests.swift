@@ -105,6 +105,28 @@ struct AppModelReviewRegressionTests {
         #expect(model.persistenceError != nil)
     }
 
+    @Test("Independent models keep separate repositories")
+    func isolatedModelsDoNotShareState() async {
+        let firstURL = temporaryFileURL()
+        let secondURL = temporaryFileURL()
+        defer {
+            try? FileManager.default.removeItem(at: firstURL.deletingLastPathComponent())
+            try? FileManager.default.removeItem(at: secondURL.deletingLastPathComponent())
+        }
+
+        let first = AppModel(repository: CountdownRepository(fileURL: firstURL))
+        let second = AppModel(repository: CountdownRepository(fileURL: secondURL))
+        let item = CountdownItem(title: "First graph", targetDate: .now)
+
+        await first.load()
+        first.add(item)
+        #expect(await first.saveImmediately())
+        await second.load()
+
+        #expect(first.items == [item])
+        #expect(second.items.isEmpty)
+    }
+
     @Test("Whitespace-only search behaves like an empty search")
     func whitespaceSearch() async {
         let url = temporaryFileURL()
