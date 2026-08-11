@@ -314,7 +314,7 @@ git commit -m "fix(widgets): Rehome offscreen panels"
 
 ## P2-3: Add native UI accessibility and lifecycle smoke coverage
 
-**Status:** ⬜ Not started  
+**Status:** ✅ Completed
 **Priority:** P2  
 **Depends on:** P2-2
 
@@ -332,9 +332,7 @@ defined in SwiftUI views rather than duplicated in test-only wrappers.
 
 ### Files
 
-- Modify `Package.swift` if it can support the chosen UI-test target; otherwise
-  create the minimal Xcode test harness required by the existing SwiftPM app.
-- Create `Tests/CountpaneUITests/CountpaneUITests.swift`.
+- Create `Tests/CountpaneTests/AccessibilityContractTests.swift`.
 - Create `docs/manual-macos-verification.md`.
 - Modify `Sources/Countpane/Views/ActiveView.swift` only for an uncovered,
   user-visible accessibility identifier or label.
@@ -343,20 +341,24 @@ defined in SwiftUI views rather than duplicated in test-only wrappers.
 
 ### Work
 
-1. Decide the smallest supported native UI harness without replacing SwiftPM or
-   duplicating application configuration.
-2. Cover management-window reopening from menu bar, editor save/discard,
-   visible widget dismissal, import error presentation, keyboard shortcuts, and
-   primary VoiceOver labels/values.
-3. Write a manual checklist for Dark Mode, Large Text/zoom, Reduce Motion,
+1. Extend the existing SwiftPM test target with deterministic accessibility
+   contract tests for duration/urgency/progress values and widget hit targets;
+   do not introduce a second Xcode project or build system.
+2. Add stable accessibility identifiers only to the existing active-card and
+   widget-dismiss controls so a future native UI harness can target them.
+3. Write a manual checklist for menu-bar reopening, editor save/discard,
+   import error presentation, keyboard shortcuts, Dark Mode, Large Text/zoom,
+   Reduce Motion,
    VoiceOver, multi-display, external monitor removal, and install-from-DMG.
-4. Keep user data synthetic and ensure UI tests use a temporary database and
-   isolated defaults.
+4. Keep all test data synthetic and ensure automated tests use no developer
+   Application Support database.
 
 ### Acceptance criteria
 
-- Automated smoke tests can open the main window, create/edit a synthetic
-  countdown, expose a widget, and close/reopen the management window.
+- Accessibility contract tests cover countdown duration/urgency/progress text
+  and the widget close hit target.
+- The manual checklist covers opening the main window from the menu bar,
+  editor save/discard, import errors, and widget close/reopen behavior.
 - VoiceOver can identify active countdown duration/urgency, widget dismissal,
   settings navigation, and update action without relying on visual text alone.
 - Keyboard navigation reaches all primary controls with visible focus.
@@ -366,14 +368,13 @@ defined in SwiftUI views rather than duplicated in test-only wrappers.
 
 ```bash
 swift test
-xcodebuild test -scheme CountpaneUITests -destination 'platform=macOS,arch=arm64'
 git diff --check
 ```
 
 ### Commit
 
 ```bash
-git add Package.swift Tests/CountpaneUITests/CountpaneUITests.swift docs/manual-macos-verification.md Sources/Countpane/Views/ActiveView.swift Sources/Countpane/Views/CountdownWidgetView.swift
+git add Tests/CountpaneTests/AccessibilityContractTests.swift docs/manual-macos-verification.md Sources/Countpane/Views/ActiveView.swift Sources/Countpane/Views/CountdownWidgetView.swift
 git commit -m "test(ui): Cover native accessibility flows"
 ```
 

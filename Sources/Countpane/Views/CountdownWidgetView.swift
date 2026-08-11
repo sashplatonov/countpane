@@ -86,6 +86,7 @@ struct CountdownWidgetView: View {
                 .countpaneNoFocusRing()
                 .help("Hide desktop widget")
                 .accessibilityLabel("Hide desktop widget")
+                .accessibilityIdentifier("widget-close-\(id.uuidString)")
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))

@@ -104,6 +104,7 @@ struct CountdownCard: View {
         .animation(.easeOut(duration: 0.16), value: isHovering)
         .onHover { isHovering = $0 }
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("countdown-card-\(item.id.uuidString)")
         .accessibilityLabel("\(item.title), \(duration.accessibilityText), \(urgency.rawValue)")
         .accessibilityValue(progressAccessibilityValue)
         .contextMenu { cardActions }
