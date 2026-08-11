@@ -89,10 +89,13 @@ final class WidgetWindowController: NSObject, NSWindowDelegate {
     }
 
     private func rehomeWindows() {
-        for (id, panel) in windows {
-            let origin = self.origin(for: id, initialPositionIndex: 0)
-            if panel.frame.origin != origin {
-                panel.setFrameOrigin(origin)
+        let orderedWindows = windows.sorted { lhs, rhs in
+            lhs.key.uuidString < rhs.key.uuidString
+        }
+        for (index, entry) in orderedWindows.enumerated() {
+            let origin = self.origin(for: entry.key, initialPositionIndex: index)
+            if entry.value.frame.origin != origin {
+                entry.value.setFrameOrigin(origin)
             }
         }
     }

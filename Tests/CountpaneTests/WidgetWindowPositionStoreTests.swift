@@ -39,6 +39,28 @@ struct WidgetWindowPositionStoreTests {
         ) == CGPoint(x: 1_602, y: 824))
     }
 
+    @Test("Rehomed widgets retain distinct cascade positions")
+    func cascadesMultipleOffScreenWidgets() {
+        let screen = CGRect(x: 0, y: 0, width: 1_920, height: 1_080)
+        let widgetSize = CGSize(width: 294, height: 184)
+
+        let first = WidgetWindowPlacement.origin(
+            for: CGPoint(x: 4_000, y: 4_000),
+            widgetSize: widgetSize,
+            screenFrames: [screen],
+            fallbackIndex: 0
+        )
+        let second = WidgetWindowPlacement.origin(
+            for: CGPoint(x: 5_000, y: 5_000),
+            widgetSize: widgetSize,
+            screenFrames: [screen],
+            fallbackIndex: 1
+        )
+
+        #expect(first != second)
+        #expect(second == CGPoint(x: 1_602, y: 800))
+    }
+
     @Test("A partially visible widget is clamped inside the screen")
     func clampsPartiallyVisibleWidget() {
         let screen = CGRect(x: 0, y: 0, width: 1_920, height: 1_080)
