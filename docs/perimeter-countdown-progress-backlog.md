@@ -128,7 +128,7 @@ git commit -m "feat(widget): show perimeter progress"
 
 ## P1-3: Replace active-list progress with the shared perimeter treatment
 
-**Status:** ⬜ Not started
+**Status:** ✅ Completed
 **Priority:** P1
 **Depends on:** P1-1
 

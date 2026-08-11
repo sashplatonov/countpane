@@ -86,6 +86,14 @@ struct CountdownCard: View {
         }
         .background(cardBackground)
         .clipShape(.rect(cornerRadius: density == .compactRow ? 15 : 18))
+        .overlay {
+            CountdownPerimeterProgress(
+                progress: progress,
+                theme: item.theme,
+                cornerRadius: density == .compactRow ? 15 : 18,
+                lineWidth: 2
+            )
+        }
         .overlay { cardBorder }
         .shadow(color: .black.opacity(isHovering ? 0.24 : 0.14), radius: isHovering ? 18 : 10, y: isHovering ? 9 : 5)
         .gentlePulse(every: pulseInterval)
@@ -193,21 +201,6 @@ struct CountdownCard: View {
                 }
                 Spacer()
                 urgencyPill
-            }
-
-            if let progress {
-                GeometryReader { proxy in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(Color.secondary.opacity(0.12))
-                        Capsule()
-                            .fill(item.theme.accent)
-                            .frame(width: proxy.size.width * max(0, min(progress, 1)))
-                    }
-                }
-                .frame(height: 6)
-                .accessibilityElement()
-                .accessibilityLabel("Countdown progress")
-                .accessibilityValue("\(Int(progress * 100)) percent")
             }
 
             HStack {
