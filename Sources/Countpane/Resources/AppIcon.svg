@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<defs>
+  <!-- Aurora/Ink-inspired palette: navy graphite, mint, and lavender. -->
+  <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#0b1220"/>
+    <stop offset="0.56" stop-color="#102f46"/>
+    <stop offset="1" stop-color="#241a38"/>
+  </linearGradient>
+  <linearGradient id="progress" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#55d6c2"/>
+    <stop offset="1" stop-color="#9b8afb"/>
+  </linearGradient>
+  <linearGradient id="gift" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#b9a8ff"/>
+    <stop offset="1" stop-color="#73e0ce"/>
+  </linearGradient>
+</defs>
+<rect x="64" y="64" width="896" height="896" rx="210" fill="url(#background)"/>
+<circle cx="512" cy="500" r="315" fill="none" stroke="#34445d" stroke-width="18" stroke-dasharray="4 34" stroke-linecap="round"/>
+<circle cx="512" cy="500" r="315" fill="none" stroke="url(#progress)" stroke-width="18" stroke-dasharray="880 1100" stroke-linecap="round"
+        transform="rotate(-92 512 500)"/>
+<g transform="translate(455 235)" fill="none" stroke="url(#gift)" stroke-width="16">
+  <rect x="0" y="55" width="115" height="90" rx="10"/>
+  <path d="M57 55 V145 M0 88 H115"/>
+  <path d="M57 55 C38 30 18 28 15 45 C12 62 32 67 57 55"/>
+  <path d="M57 55 C76 30 96 28 100 45 C103 62 82 67 57 55"/>
+</g>
+<text x="512" y="590" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="220" font-weight="700" fill="#ffffff">9</text>
+<text x="512" y="690" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="68" fill="#e9f5ff">days</text>
+</svg>
