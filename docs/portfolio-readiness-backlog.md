@@ -380,7 +380,7 @@ git commit -m "test(ui): Cover native accessibility flows"
 
 ## P2-4: Verify DMG integrity and install layout in packaging
 
-**Status:** ⬜ Not started  
+**Status:** ✅ Completed
 **Priority:** P2  
 **Depends on:** -
 
@@ -398,7 +398,6 @@ script or alter signing/notarization scope.
 ### Files
 
 - Modify `Scripts/build-dmg.sh`.
-- Modify `.github/workflows/ci.yml`.
 - Modify `.github/workflows/release.yml`.
 
 ### Work
@@ -432,7 +431,7 @@ git diff --check
 ### Commit
 
 ```bash
-git add Scripts/build-dmg.sh .github/workflows/ci.yml .github/workflows/release.yml
+git add Scripts/build-dmg.sh .github/workflows/release.yml
 git commit -m "ci(package): Verify DMG contents"
 ```
 

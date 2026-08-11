@@ -96,6 +96,12 @@ jobs:
             diff -u <(xcrun dwarfdump --uuid "$APP/Contents/MacOS/Countpane" | awk '/^UUID:/ { print $2 }' | sort) <(xcrun dwarfdump --uuid "dist/Countpane-${ARCH}.dSYM" | awk '/^UUID:/ { print $2 }' | sort)
           done
 
+      - name: Verify disk images
+        shell: bash
+        run: |
+          hdiutil verify "dist/Countpane-${{ steps.version.outputs.version }}-arm64.dmg"
+          hdiutil verify "dist/Countpane-${{ steps.version.outputs.version }}-x86_64.dmg"
+
       - name: Measure release size
         run: |
           ./Scripts/measure-distribution-size.sh --architecture arm64 --max-application-bytes 5400000 --max-executable-bytes 3600000 --max-dmg-bytes 3000000 "dist/Countpane-arm64.app" "dist/Countpane-${{ steps.version.outputs.version }}-arm64.dmg"

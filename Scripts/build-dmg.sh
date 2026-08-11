@@ -15,6 +15,18 @@ APP_NAME="Countpane${ARTIFACT_SUFFIX}.app"
 DMG_NAME="Countpane-${VERSION}${ARTIFACT_SUFFIX}.dmg"
 STAGING_DIR="$ROOT_DIR/dist/dmg"
 DMG_PATH="$ROOT_DIR/dist/$DMG_NAME"
+MOUNT_DIR=""
+ATTACHED=0
+
+cleanup() {
+    if [[ "$ATTACHED" == 1 ]]; then
+        hdiutil detach "$MOUNT_DIR" >/dev/null 2>&1 || true
+    fi
+    if [[ -n "$MOUNT_DIR" ]]; then
+        rm -rf "$MOUNT_DIR"
+    fi
+}
+trap cleanup EXIT
 
 "$ROOT_DIR/Scripts/build-app.sh" "$VERSION" "$ARCHITECTURE"
 
@@ -30,6 +42,19 @@ hdiutil create \
     -format UDZO \
     -imagekey zlib-level=9 \
     "$DMG_PATH"
+
+hdiutil verify "$DMG_PATH"
+MOUNT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/countpane-dmg-mount.XXXXXX")"
+hdiutil attach \
+    -nobrowse \
+    -readonly \
+    -mountpoint "$MOUNT_DIR" \
+    "$DMG_PATH" >/dev/null
+ATTACHED=1
+test -d "$MOUNT_DIR/Countpane.app"
+test -L "$MOUNT_DIR/Applications"
+hdiutil detach "$MOUNT_DIR" >/dev/null
+ATTACHED=0
 
 rm -rf "$STAGING_DIR"
 shasum -a 256 "$DMG_PATH" > "$DMG_PATH.sha256"
