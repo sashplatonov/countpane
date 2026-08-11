@@ -5,6 +5,7 @@ struct CountdownWidgetView: View {
     let id: UUID
 
     static let contentSize = CGSize(width: 270, height: 160)
+    static let closeButtonHitSize: CGFloat = 44
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 3600)) { context in
@@ -46,7 +47,7 @@ struct CountdownWidgetView: View {
                         .minimumScaleFactor(0.72)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(.trailing, 30)
+                .padding(.trailing, Self.closeButtonHitSize)
 
                 Spacer(minLength: 0)
 
@@ -79,10 +80,12 @@ struct CountdownWidgetView: View {
                         .font(.caption.bold())
                         .frame(width: 26, height: 26)
                         .background(.ultraThinMaterial, in: Circle())
+                        .frame(width: Self.closeButtonHitSize, height: Self.closeButtonHitSize)
                 }
                 .buttonStyle(.plain)
                 .countpaneNoFocusRing()
                 .help("Hide desktop widget")
+                .accessibilityLabel("Hide desktop widget")
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
