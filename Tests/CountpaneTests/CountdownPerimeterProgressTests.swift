@@ -12,7 +12,7 @@ struct CountdownPerimeterProgressTests {
         #expect(value.accessibilityValue == nil)
     }
 
-    @Test("Progress keeps valid values and hides the active segment at zero")
+    @Test("Progress keeps valid values and shows the start marker at zero")
     func validProgress() {
         let zero = CountdownPerimeterProgressValue(0)
         let partial = CountdownPerimeterProgressValue(0.5)

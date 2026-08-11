@@ -1,9 +1,7 @@
-import AppKit
 import SwiftUI
 
 struct CountdownWidgetView: View {
     @Environment(AppModel.self) private var model
-    @State private var dragOrigin: CGPoint?
     let id: UUID
 
     static let contentSize = CGSize(width: 270, height: 160)
@@ -93,26 +91,13 @@ struct CountdownWidgetView: View {
                 progress: progress,
                 theme: item.theme,
                 cornerRadius: 22,
-                lineWidth: 2
+                lineWidth: 2.5
             )
         }
         .overlay {
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .stroke(.white.opacity(item.theme.isDark ? 0.12 : 0.34), lineWidth: 1)
         }
-        .gesture(
-            DragGesture(minimumDistance: 4)
-                .onChanged { value in
-                    if dragOrigin == nil {
-                        dragOrigin = WidgetWindowController.shared.origin(for: id)
-                    }
-                    guard let dragOrigin else { return }
-                    WidgetWindowController.shared.move(id: id, from: dragOrigin, by: value.translation)
-                }
-                .onEnded { _ in
-                    dragOrigin = nil
-                }
-        )
         .gentlePulse(every: item.attentionEnabled ? urgency.pulseInterval : nil)
         .padding(12)
         .accessibilityElement(children: .combine)

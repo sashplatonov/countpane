@@ -21,7 +21,7 @@ struct CountdownPerimeterProgress: View {
     let progress: Double?
     let theme: CountdownTheme
     var cornerRadius: CGFloat = 18
-    var lineWidth: CGFloat = 2
+    var lineWidth: CGFloat = 2.5
 
     private var value: CountdownPerimeterProgressValue {
         CountdownPerimeterProgressValue(progress)
@@ -40,19 +40,14 @@ struct CountdownPerimeterProgress: View {
     }
 
     private var trackStyle: StrokeStyle {
-        StrokeStyle(
-            lineWidth: lineWidth,
-            lineCap: .round,
-            lineJoin: .round,
-            dash: [2.5, 5.5]
-        )
+        StrokeStyle(lineWidth: max(1, lineWidth * 0.55), lineCap: .round, lineJoin: .round)
     }
 
     var body: some View {
         if value.normalized != nil {
             ZStack {
                 contour
-                    .stroke(Color.secondary.opacity(0.20), style: trackStyle)
+                    .stroke(theme.accent.opacity(0.42), style: trackStyle)
 
                 if value.showsActiveSegment, let normalized = value.normalized {
                     contour
@@ -60,6 +55,12 @@ struct CountdownPerimeterProgress: View {
                         .stroke(theme.gradient, style: strokeStyle)
                         .rotationEffect(.degrees(-90))
                 }
+
+                Circle()
+                    .fill(theme.accent)
+                    .frame(width: lineWidth * 1.8, height: lineWidth * 1.8)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .padding(.top, lineWidth / 2)
             }
             .padding(contourInset)
             .allowsHitTesting(false)
