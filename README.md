@@ -45,7 +45,12 @@ brew upgrade --cask countpane
 
 [↑ Back to top](#top)
 
-![Countpane app preview](docs/app-preview.png)
+![Countpane dashboard preview with synthetic countdowns](docs/app-preview.png)
+
+![Countpane wide product preview with synthetic countdowns](docs/social-preview.png)
+
+The committed images use synthetic data. For menu-bar, widget, VoiceOver, and
+multi-display runtime proof, follow the [manual macOS verification checklist](docs/manual-macos-verification.md).
 
 ## ✨ Why Countpane
 

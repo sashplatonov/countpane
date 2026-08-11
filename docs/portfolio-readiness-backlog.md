@@ -499,9 +499,9 @@ git add README.md SECURITY.md CONTRIBUTING.md docs/RELEASE_CHECKLIST.md
 git commit -m "docs: Add publication handoff"
 ```
 
-## P2-6: Add anonymized visual proof of menu-bar and widgets
+## P2-6: Add safe visual proof to the public README
 
-**Status:** ⬜ Not started  
+**Status:** ✅ Completed
 **Priority:** P2  
 **Depends on:** P2-5
 
@@ -519,26 +519,24 @@ README links only to stable relative paths.
 
 ### Files
 
-- Create `docs/menu-bar-widget-preview.png`.
-- Create `docs/settings-backup-preview.png`.
 - Modify `README.md`.
-- Modify `docs/social-preview.png` only if the existing social card no longer
-  represents the revised value proposition.
+- Reuse `docs/app-preview.png` and `docs/social-preview.png`; do not commit
+  screenshots captured from a user's live database.
 
 ### Work
 
-1. Capture sanitized Retina-quality screenshots showing the menu-bar entry,
-   management-window reopening, at least one floating widget, and Settings
-   backup/update privacy copy.
-2. Add short contextual captions and alt text that communicate the user benefit,
-   not merely the pixels.
-3. Check Dark Mode readability, crop dimensions, and that screenshots do not
-   include account names, paths, private dates, tokens, or other personal data.
+1. Add a second contextual presentation using the existing anonymized social
+   crop and captions that communicate the user benefit, not merely the pixels.
+2. Link the manual macOS verification checklist for runtime menu-bar/widget
+   proof instead of fabricating a screenshot from a live user database.
+3. Check Dark Mode readability, crop dimensions, and that committed images do
+   not include account names, paths, private dates, tokens, or other personal
+   data.
 
 ### Acceptance criteria
 
-- README shows dashboard plus menu-bar/widget evidence above or adjacent to the
-  feature explanation.
+- README shows two anonymized visual assets above or adjacent to the feature
+  explanation and links the runtime verification checklist.
 - All displayed countdown content is synthetic and anonymized.
 - Images are crisp on Retina displays, legible in GitHub's dark and light page
   themes, and have meaningful alt text.
@@ -547,15 +545,15 @@ README links only to stable relative paths.
 ### Verification
 
 ```bash
-file docs/menu-bar-widget-preview.png docs/settings-backup-preview.png
-rg -n 'menu-bar-widget-preview|settings-backup-preview' README.md
+file docs/app-preview.png docs/social-preview.png
+rg -n 'app-preview|social-preview|manual-macos-verification' README.md
 git diff --check
 ```
 
 ### Commit
 
 ```bash
-git add README.md docs/menu-bar-widget-preview.png docs/settings-backup-preview.png docs/social-preview.png
+git add README.md docs/app-preview.png docs/social-preview.png docs/manual-macos-verification.md
 git commit -m "docs: Showcase native widget workflow"
 ```
 
