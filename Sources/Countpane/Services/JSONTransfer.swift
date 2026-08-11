@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct CountpaneExportDocument: Codable, Equatable, Sendable {
-    static let currentFormatVersion = 2
+    static let currentFormatVersion = 3
 
     let formatVersion: Int
     let exportedAt: Date

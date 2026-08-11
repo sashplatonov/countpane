@@ -4,7 +4,7 @@ struct CountdownItem: Identifiable, Codable, Equatable, Sendable {
     var id = UUID()
     var title: String
     var targetDate: Date
-    var createdAt: Date?
+    var createdAt: Date = .now
     var note = ""
     var symbol = "star"
     var theme: CountdownTheme = .oceanLight
@@ -45,7 +45,6 @@ struct CountdownItem: Identifiable, Codable, Equatable, Sendable {
     }
 
     func progress(at date: Date = .now, calendar: Calendar = .autoupdatingCurrent) -> Double? {
-        guard let createdAt else { return nil }
         let start = calendar.startOfDay(for: createdAt)
         let end = calendar.startOfDay(for: targetDate)
         guard end > start else { return nil }

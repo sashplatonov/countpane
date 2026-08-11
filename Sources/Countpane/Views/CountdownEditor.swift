@@ -399,15 +399,11 @@ struct CountdownEditor: View {
 enum CountdownEditorDraft {
     static func itemForSaving(
         _ draft: CountdownItem,
-        title: String,
-        now: Date = .now
+        title: String
     ) -> CountdownItem {
         var saved = draft
         saved.title = title
         saved.normalizeThresholds()
-        if saved.createdAt == nil {
-            saved.createdAt = now
-        }
         return saved
     }
 

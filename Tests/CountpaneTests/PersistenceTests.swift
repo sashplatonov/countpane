@@ -1,4 +1,5 @@
 import Foundation
+import SQLite3
 import Testing
 @testable import Countpane
 
@@ -71,6 +72,54 @@ struct CountdownRepositoryTests {
             try await repository.save([original, duplicate])
         }
         #expect(try await repository.load() == [original])
+    }
+
+    @Test("Version 1 databases canonicalize missing creation dates")
+    func migratesNullableCreationDate() async throws {
+        let location = temporaryFileURL()
+        defer { try? FileManager.default.removeItem(at: location.deletingLastPathComponent()) }
+
+        var database: OpaquePointer?
+        #expect(sqlite3_open_v2(location.path(percentEncoded: false), &database, SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE, nil) == SQLITE_OK)
+        defer { sqlite3_close(database) }
+
+        let schema = """
+        CREATE TABLE countdowns (
+            id TEXT PRIMARY KEY NOT NULL,
+            sort_index INTEGER NOT NULL UNIQUE,
+            title TEXT NOT NULL,
+            target_date REAL NOT NULL,
+            created_at REAL,
+            note TEXT NOT NULL,
+            symbol TEXT NOT NULL,
+            theme TEXT NOT NULL,
+            is_completed INTEGER NOT NULL CHECK (is_completed IN (0, 1)),
+            completed_at REAL,
+            is_pinned INTEGER NOT NULL CHECK (is_pinned IN (0, 1)),
+            soon_threshold INTEGER NOT NULL,
+            hurry_threshold INTEGER NOT NULL,
+            almost_threshold INTEGER NOT NULL,
+            attention_enabled INTEGER NOT NULL CHECK (attention_enabled IN (0, 1)),
+            is_widget_visible INTEGER NOT NULL CHECK (is_widget_visible IN (0, 1))
+        );
+        PRAGMA user_version = 1;
+        """
+        #expect(sqlite3_exec(database, schema, nil, nil, nil) == SQLITE_OK)
+
+        let id = UUID().uuidString
+        let target = Date(timeIntervalSince1970: 1_900_000_000)
+        let insert = """
+        INSERT INTO countdowns (id, sort_index, title, target_date, created_at, note, symbol, theme, is_completed, completed_at, is_pinned, soon_threshold, hurry_threshold, almost_threshold, attention_enabled, is_widget_visible)
+        VALUES ('\(id)', 0, 'Legacy', \(target.timeIntervalSinceReferenceDate), NULL, '', 'star', 'Ocean Light', 0, NULL, 0, 14, 7, 3, 1, 1);
+        """
+        #expect(sqlite3_exec(database, insert, nil, nil, nil) == SQLITE_OK)
+        sqlite3_close(database)
+        database = nil
+
+        let loaded = try await CountdownRepository(fileURL: location).load()
+        #expect(loaded.count == 1)
+        #expect(loaded[0].createdAt == target)
+        #expect(try await CountdownRepository(fileURL: location).load() == loaded)
     }
 
     private func temporaryFileURL() -> URL {

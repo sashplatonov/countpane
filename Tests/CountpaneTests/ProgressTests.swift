@@ -20,7 +20,7 @@ struct CountdownProgressTests {
         #expect(item.progress(at: calendar.date(byAdding: .day, value: 5, to: start)!, calendar: calendar) == 0.5)
         #expect(item.progress(at: calendar.date(byAdding: .day, value: 20, to: start)!, calendar: calendar) == 1)
 
-        item.createdAt = nil
+        item.createdAt = target
         #expect(item.progress(at: start, calendar: calendar) == nil)
     }
 

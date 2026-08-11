@@ -21,13 +21,14 @@ enum CountdownPersistenceError: LocalizedError {
 }
 
 actor CountdownRepository: CountdownStoring {
+    private static let currentSchemaVersion = 2
     private static let schema = """
         CREATE TABLE IF NOT EXISTS countdowns (
             id TEXT PRIMARY KEY NOT NULL,
             sort_index INTEGER NOT NULL UNIQUE,
             title TEXT NOT NULL,
             target_date REAL NOT NULL,
-            created_at REAL,
+            created_at REAL NOT NULL,
             note TEXT NOT NULL,
             symbol TEXT NOT NULL,
             theme TEXT NOT NULL,
@@ -139,8 +140,57 @@ actor CountdownRepository: CountdownStoring {
         try execute("PRAGMA journal_mode = WAL;", in: connection)
         try execute("PRAGMA synchronous = FULL;", in: connection)
         try execute(Self.schema, in: connection)
-        try execute("PRAGMA user_version = 1;", in: connection)
+        try migrateIfNeeded(connection)
         return try body(connection)
+    }
+
+    private func migrateIfNeeded(_ database: OpaquePointer) throws {
+        let version = try queryInteger("PRAGMA user_version;", in: database)
+        guard version < Self.currentSchemaVersion else { return }
+
+        if version == 0 {
+            try execute("PRAGMA user_version = 2;", in: database)
+            return
+        }
+
+        try execute("BEGIN IMMEDIATE TRANSACTION;", in: database)
+        do {
+            // Version 1 allowed NULL creation dates. The target date is the
+            // deterministic sentinel for records whose creation date was
+            // never stored, preserving the old behavior of hiding progress.
+            try execute("UPDATE countdowns SET created_at = target_date WHERE created_at IS NULL;", in: database)
+            try execute(
+                """
+                CREATE TABLE countdowns_v2 (
+                    id TEXT PRIMARY KEY NOT NULL,
+                    sort_index INTEGER NOT NULL UNIQUE,
+                    title TEXT NOT NULL,
+                    target_date REAL NOT NULL,
+                    created_at REAL NOT NULL,
+                    note TEXT NOT NULL,
+                    symbol TEXT NOT NULL,
+                    theme TEXT NOT NULL,
+                    is_completed INTEGER NOT NULL CHECK (is_completed IN (0, 1)),
+                    completed_at REAL,
+                    is_pinned INTEGER NOT NULL CHECK (is_pinned IN (0, 1)),
+                    soon_threshold INTEGER NOT NULL,
+                    hurry_threshold INTEGER NOT NULL,
+                    almost_threshold INTEGER NOT NULL,
+                    attention_enabled INTEGER NOT NULL CHECK (attention_enabled IN (0, 1)),
+                    is_widget_visible INTEGER NOT NULL CHECK (is_widget_visible IN (0, 1))
+                );
+                INSERT INTO countdowns_v2 SELECT * FROM countdowns;
+                DROP TABLE countdowns;
+                ALTER TABLE countdowns_v2 RENAME TO countdowns;
+                """,
+                in: database
+            )
+            try execute("PRAGMA user_version = 2;", in: database)
+            try execute("COMMIT;", in: database)
+        } catch {
+            try? execute("ROLLBACK;", in: database)
+            throw error
+        }
     }
 
     private func execute(_ sql: String, in database: OpaquePointer) throws {
@@ -160,6 +210,13 @@ actor CountdownRepository: CountdownStoring {
             throw databaseError(database)
         }
         return statement
+    }
+
+    private func queryInteger(_ sql: String, in database: OpaquePointer) throws -> Int {
+        let statement = try prepare(sql, in: database)
+        defer { sqlite3_finalize(statement) }
+        guard sqlite3_step(statement) == SQLITE_ROW else { throw databaseError(database) }
+        return Int(sqlite3_column_int64(statement, 0))
     }
 
     private func bind(
@@ -230,7 +287,8 @@ actor CountdownRepository: CountdownStoring {
               let note = text(at: 4, from: statement),
               let symbol = text(at: 5, from: statement),
               let themeText = text(at: 6, from: statement),
-              let theme = CountdownTheme(rawValue: themeText) else {
+              let theme = CountdownTheme(rawValue: themeText),
+              let createdAt = date(at: 3, from: statement) else {
             throw CountdownPersistenceError.invalidRecord("Missing or invalid required value.")
         }
 
@@ -238,7 +296,7 @@ actor CountdownRepository: CountdownStoring {
             id: identifier,
             title: title,
             targetDate: Date(timeIntervalSinceReferenceDate: sqlite3_column_double(statement, 2)),
-            createdAt: date(at: 3, from: statement),
+            createdAt: createdAt,
             note: note,
             symbol: symbol,
             theme: theme,

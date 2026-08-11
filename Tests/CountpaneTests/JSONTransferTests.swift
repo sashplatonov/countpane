@@ -15,7 +15,7 @@ struct JSONTransferTests {
         let data = try CountpaneJSONTransfer.encode(items: items, exportedAt: exportedAt)
         let decoded = try CountpaneJSONTransfer.decode(data)
 
-        #expect(decoded.formatVersion == 2)
+        #expect(decoded.formatVersion == 3)
         #expect(decoded.exportedAt == exportedAt)
         #expect(decoded.items == items)
     }

@@ -34,7 +34,8 @@ struct CountdownItemCodingTests {
         let json = """
         {
           "title": "Incomplete",
-          "targetDate": "2027-01-01T00:00:00Z"
+          "targetDate": "2027-01-01T00:00:00Z",
+          "createdAt": "2026-12-01T00:00:00Z"
         }
         """.data(using: .utf8)!
 
