@@ -20,8 +20,7 @@ struct CountpaneApp: App {
         MenuBarExtra {
             MenuBarView()
         } label: {
-            AppBrandIcon(size: 18)
-                .accessibilityLabel("Countpane")
+            MenuBarAppIcon()
         }
         .menuBarExtraStyle(.menu)
 

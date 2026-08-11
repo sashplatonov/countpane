@@ -24,3 +24,26 @@ struct AppBrandIcon: View {
         .accessibilityHidden(true)
     }
 }
+
+struct MenuBarAppIcon: View {
+    static let size: CGFloat = 18
+
+    private var image: NSImage? {
+        AppIconResource.menuBarImage(size: Self.size)
+    }
+
+    var body: some View {
+        Group {
+            if let image {
+                Image(nsImage: image)
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFit()
+            } else {
+                Image(systemName: "calendar.badge.clock")
+            }
+        }
+        .frame(width: Self.size, height: Self.size)
+        .accessibilityLabel("Countpane")
+    }
+}

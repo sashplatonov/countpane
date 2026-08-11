@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Testing
 @testable import Countpane
@@ -18,5 +19,13 @@ struct AppIconResourceTests {
         try Data().write(to: iconURL)
 
         #expect(AppIconResource.resourceURL(bundleURL: appURL, resourceURL: resourcesURL) == iconURL)
+    }
+
+    @Test("Menu-bar icon has a compact physical size")
+    func menuBarIconSize() {
+        let source = NSImage(size: NSSize(width: 512, height: 512))
+        let image = AppIconResource.menuBarImage(from: source, size: 18)
+
+        #expect(image?.size == NSSize(width: 18, height: 18))
     }
 }
