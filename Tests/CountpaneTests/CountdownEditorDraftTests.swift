@@ -32,4 +32,30 @@ struct CountdownEditorDraftTests {
             title: original.title
         ))
     }
+
+    @Test("Saving a new countdown records its creation date")
+    func newCountdownCreationDate() {
+        let createdAt = Date(timeIntervalSince1970: 1_800_000_000)
+        let saved = CountdownEditorDraft.itemForSaving(
+            CountdownItem(title: "", targetDate: createdAt.addingTimeInterval(86_400)),
+            title: "Vacation",
+            isNewCountdown: true,
+            now: createdAt
+        )
+
+        #expect(saved.title == "Vacation")
+        #expect(saved.createdAt == createdAt)
+    }
+
+    @Test("Saving an existing legacy countdown does not invent a creation date")
+    func legacyCountdownCreationDate() {
+        let saved = CountdownEditorDraft.itemForSaving(
+            CountdownItem(title: "Vacation", targetDate: .now),
+            title: "Vacation",
+            isNewCountdown: false,
+            now: .now
+        )
+
+        #expect(saved.createdAt == nil)
+    }
 }

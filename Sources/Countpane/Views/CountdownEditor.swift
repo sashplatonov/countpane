@@ -4,6 +4,7 @@ struct CountdownEditor: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("appTheme") private var appTheme = AppTheme.system.rawValue
     private let originalItem: CountdownItem
+    private let isNewCountdown: Bool
     @State private var draft: CountdownItem
     @State private var title: String
     @State private var showUrgencySettings = false
@@ -19,6 +20,7 @@ struct CountdownEditor: View {
     ]
 
     init(item: CountdownItem?, onSave: @escaping (CountdownItem) -> Void) {
+        isNewCountdown = item == nil
         let initialItem = item ?? CountdownItem(
             title: "",
             targetDate: Calendar.autoupdatingCurrent.date(byAdding: .day, value: 30, to: .now) ?? .now
@@ -371,9 +373,11 @@ struct CountdownEditor: View {
 
     private func saveDraft() {
         guard canSave else { return }
-        draft.title = trimmedTitle
-        draft.normalizeThresholds()
-        onSave(draft)
+        onSave(CountdownEditorDraft.itemForSaving(
+            draft,
+            title: trimmedTitle,
+            isNewCountdown: isNewCountdown
+        ))
         dismiss()
     }
 
@@ -396,6 +400,21 @@ struct CountdownEditor: View {
 }
 
 enum CountdownEditorDraft {
+    static func itemForSaving(
+        _ draft: CountdownItem,
+        title: String,
+        isNewCountdown: Bool,
+        now: Date = .now
+    ) -> CountdownItem {
+        var saved = draft
+        saved.title = title
+        saved.normalizeThresholds()
+        if isNewCountdown, saved.createdAt == nil {
+            saved.createdAt = now
+        }
+        return saved
+    }
+
     static func hasChanges(
         original: CountdownItem,
         draft: CountdownItem,
