@@ -126,7 +126,7 @@ git commit -m "refactor(data): Remove legacy countdown dates"
 
 ## P1-2: Bound and validate backup imports before replacement
 
-**Status:** ⬜ Not started  
+**Status:** ✅ Completed
 **Priority:** P1  
 **Depends on:** P1-1
 

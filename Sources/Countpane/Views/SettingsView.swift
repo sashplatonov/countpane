@@ -238,6 +238,10 @@ struct SettingsView: View {
             guard let url = try result.get().first else { return }
             let accessGranted = url.startAccessingSecurityScopedResource()
             defer { if accessGranted { url.stopAccessingSecurityScopedResource() } }
+            let resourceValues = try url.resourceValues(forKeys: [.fileSizeKey])
+            if let fileSize = resourceValues.fileSize {
+                try CountpaneJSONTransfer.validate(dataSize: fileSize)
+            }
             let data = try Data(contentsOf: url, options: [.mappedIfSafe])
             pendingImport = try CountpaneJSONTransfer.decode(data)
         } catch {

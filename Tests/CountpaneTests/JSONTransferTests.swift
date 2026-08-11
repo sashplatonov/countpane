@@ -69,6 +69,37 @@ struct JSONTransferTests {
         }
     }
 
+    @Test("Import boundaries reject oversized and semantically invalid data")
+    func importBoundaries() throws {
+        #expect(throws: CountpaneTransferError.fileTooLarge) {
+            try CountpaneJSONTransfer.validate(dataSize: CountpaneJSONTransfer.maxBackupBytes + 1)
+        }
+
+        let date = Date(timeIntervalSince1970: 1_800_000_000)
+        let tooMany = (0...CountpaneJSONTransfer.maxItemCount).map {
+            CountdownItem(title: "Item \($0)", targetDate: date)
+        }
+        #expect(throws: CountpaneTransferError.tooManyItems) {
+            try CountpaneJSONTransfer.validate(tooMany)
+        }
+
+        let longTitle = String(repeating: "x", count: CountpaneJSONTransfer.maxTitleLength + 1)
+        #expect(throws: CountpaneTransferError.textTooLong(longTitle)) {
+            try CountpaneJSONTransfer.validate([CountdownItem(title: longTitle, targetDate: date)])
+        }
+
+        let nonFinite = CountdownItem(title: "Invalid date", targetDate: Date(timeIntervalSinceReferenceDate: .infinity))
+        #expect(throws: CountpaneTransferError.invalidDate("Invalid date")) {
+            try CountpaneJSONTransfer.validate([nonFinite])
+        }
+
+        var inconsistent = CountdownItem(title: "Incomplete", targetDate: date)
+        inconsistent.isCompleted = true
+        #expect(throws: CountpaneTransferError.invalidCompletionState("Incomplete")) {
+            try CountpaneJSONTransfer.validate([inconsistent])
+        }
+    }
+
     @Test("Replacing data persists first and then updates the model")
     @MainActor
     func replaceAll() async throws {
