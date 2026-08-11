@@ -33,4 +33,11 @@ struct DesktopWidgetModelTests {
         #expect(model.item(id: item.id)?.isWidgetVisible == false)
         await model.saveImmediately()
     }
+
+    @Test("New countdowns capture their creation date")
+    func newCountdownsCaptureCreationDate() {
+        let item = CountdownItem(title: "Trip", targetDate: .now.addingTimeInterval(86_400))
+
+        #expect(item.createdAt != nil)
+    }
 }

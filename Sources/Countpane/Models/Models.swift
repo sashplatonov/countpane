@@ -4,7 +4,7 @@ struct CountdownItem: Identifiable, Codable, Equatable, Sendable {
     var id = UUID()
     var title: String
     var targetDate: Date
-    var createdAt: Date?
+    var createdAt: Date? = .now
     var note = ""
     var symbol = "star"
     var theme: CountdownTheme = .oceanLight

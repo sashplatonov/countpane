@@ -57,6 +57,20 @@ final class WidgetWindowController: NSObject, NSWindowDelegate {
         panel.delegate = nil
     }
 
+    func origin(for id: UUID) -> CGPoint? {
+        windows[id]?.frame.origin
+    }
+
+    func move(id: UUID, from origin: CGPoint, by translation: CGSize) {
+        guard let panel = windows[id] else { return }
+        panel.setFrameOrigin(
+            CGPoint(
+                x: origin.x + translation.width,
+                y: origin.y - translation.height
+            )
+        )
+    }
+
     func windowDidMove(_ notification: Notification) {
         guard let panel = notification.object as? NSWindow,
               let id = panel.identifier.flatMap({ UUID(uuidString: $0.rawValue) }) else { return }
