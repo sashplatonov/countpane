@@ -18,6 +18,7 @@ Countpane is a private, native Mac app for deadlines, anniversaries, trips, laun
 - [Updates](#updates)
 - [Build from source](#build-from-source)
 - [Releases and quality](#releases-and-quality)
+- [Contributing](#contributing)
 - [Security and license](#security-and-license)
 
 ## ⚡ Install with Homebrew
@@ -170,5 +171,12 @@ For release maintainers, see the [release checklist](docs/RELEASE_CHECKLIST.md).
 Report vulnerabilities privately according to [SECURITY.md](SECURITY.md). Never attach unredacted backups to a public issue.
 
 Countpane is available under the [MIT License](LICENSE).
+
+[↑ Back to top](#top)
+
+## 🤝 Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local checks, packaging commands,
+synthetic test-data rules, and the review workflow.
 
 [↑ Back to top](#top)

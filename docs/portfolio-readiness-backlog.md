@@ -437,7 +437,7 @@ git commit -m "ci(package): Verify DMG contents"
 
 ## P2-5: Repair maintainer documentation and publication handoff
 
-**Status:** ⬜ Not started  
+**Status:** ✅ Completed
 **Priority:** P2  
 **Depends on:** P2-3, P2-4
 
