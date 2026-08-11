@@ -39,7 +39,6 @@ struct CountdownEditorDraftTests {
         let saved = CountdownEditorDraft.itemForSaving(
             CountdownItem(title: "", targetDate: createdAt.addingTimeInterval(86_400)),
             title: "Vacation",
-            isNewCountdown: true,
             now: createdAt
         )
 
@@ -47,15 +46,15 @@ struct CountdownEditorDraftTests {
         #expect(saved.createdAt == createdAt)
     }
 
-    @Test("Saving an existing legacy countdown does not invent a creation date")
+    @Test("Saving an existing legacy countdown uses the save date as a fallback")
     func legacyCountdownCreationDate() {
+        let savedAt = Date(timeIntervalSince1970: 1_800_000_000)
         let saved = CountdownEditorDraft.itemForSaving(
-            CountdownItem(title: "Vacation", targetDate: .now),
+            CountdownItem(title: "Vacation", targetDate: savedAt.addingTimeInterval(86_400)),
             title: "Vacation",
-            isNewCountdown: false,
-            now: .now
+            now: savedAt
         )
 
-        #expect(saved.createdAt == nil)
+        #expect(saved.createdAt == savedAt)
     }
 }
