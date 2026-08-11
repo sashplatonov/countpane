@@ -17,8 +17,11 @@ struct CountpaneApp: App {
         .commands { AppCommands() }
         .handlesExternalEvents(matching: StartupPresentationPolicy.mainWindowEvents)
 
-        MenuBarExtra("Countpane", systemImage: "calendar.badge.clock") {
+        MenuBarExtra {
             MenuBarView()
+        } label: {
+            AppBrandIcon(size: 18)
+                .accessibilityLabel("Countpane")
         }
         .menuBarExtraStyle(.menu)
 
