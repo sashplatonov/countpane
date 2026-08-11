@@ -7,12 +7,6 @@ enum AppIconResource {
         return NSImage(contentsOf: url)
     }
 
-    static func menuBarImage(from source: NSImage? = AppIconResource.image, size: CGFloat) -> NSImage? {
-        guard let image = source?.copy() as? NSImage else { return nil }
-        image.size = NSSize(width: size, height: size)
-        return image
-    }
-
     static func resourceURL(
         bundleURL: URL = Bundle.main.bundleURL,
         resourceURL: URL? = Bundle.main.resourceURL

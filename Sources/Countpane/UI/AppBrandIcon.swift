@@ -28,20 +28,23 @@ struct AppBrandIcon: View {
 struct MenuBarAppIcon: View {
     static let size: CGFloat = 18
 
-    private var image: NSImage? {
-        AppIconResource.menuBarImage(size: Self.size)
-    }
-
     var body: some View {
-        Group {
-            if let image {
-                Image(nsImage: image)
-                    .resizable()
-                    .interpolation(.high)
-                    .scaledToFit()
-            } else {
-                Image(systemName: "calendar.badge.clock")
-            }
+        ZStack {
+            Circle()
+                .stroke(.primary.opacity(0.32), lineWidth: 1.15)
+
+            Circle()
+                .trim(from: 0.04, to: 0.78)
+                .stroke(
+                    .primary,
+                    style: StrokeStyle(lineWidth: 1.6, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+
+            Text("9")
+                .font(.system(size: 10.5, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(.primary)
         }
         .frame(width: Self.size, height: Self.size)
         .accessibilityLabel("Countpane")
