@@ -68,6 +68,7 @@ struct CountdownWidgetView: View {
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(item.theme.secondary)
                 }
+                .padding(.trailing, 42)
             }
             .foregroundStyle(item.theme.foreground)
             .padding(14)
@@ -90,13 +91,15 @@ struct CountdownWidgetView: View {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay {
-            CountdownPerimeterProgress(
+        .overlay(alignment: .bottomTrailing) {
+            CountdownCircularProgress(
                 progress: progress,
                 theme: item.theme,
-                cornerRadius: 22,
-                lineWidth: 2.5
+                remainingDays: item.daysRemaining(from: now),
+                diameter: 34,
+                lineWidth: 3
             )
+                .padding(14)
         }
         .overlay {
             RoundedRectangle(cornerRadius: 22, style: .continuous)

@@ -12,7 +12,7 @@ struct CountdownPerimeterProgressTests {
         #expect(value.accessibilityValue == nil)
     }
 
-    @Test("Progress keeps valid values and shows the start marker at zero")
+    @Test("Progress keeps valid values and only fills a completed segment")
     func validProgress() {
         let zero = CountdownPerimeterProgressValue(0)
         let partial = CountdownPerimeterProgressValue(0.5)
@@ -35,5 +35,13 @@ struct CountdownPerimeterProgressTests {
 
         #expect(negative.normalized == 0)
         #expect(aboveComplete.normalized == 1)
+    }
+
+    @Test("Circular progress keeps a nonnegative day count without a valid range")
+    func circularProgressDisplayValue() {
+        let value = CountdownCircularProgressValue(progress: nil, remainingDays: -3)
+
+        #expect(value.progress.normalized == nil)
+        #expect(value.remainingDays == 0)
     }
 }

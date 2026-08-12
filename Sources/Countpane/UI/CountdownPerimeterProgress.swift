@@ -17,58 +17,75 @@ struct CountdownPerimeterProgressValue: Equatable, Sendable {
     }
 }
 
-struct CountdownPerimeterProgress: View {
+struct CountdownCircularProgressValue: Equatable, Sendable {
+    let progress: CountdownPerimeterProgressValue
+    let remainingDays: Int
+
+    init(progress: Double?, remainingDays: Int) {
+        self.progress = CountdownPerimeterProgressValue(progress)
+        self.remainingDays = max(0, remainingDays)
+    }
+}
+
+struct CountdownCircularProgress: View {
     let progress: Double?
     let theme: CountdownTheme
-    var cornerRadius: CGFloat = 18
-    var lineWidth: CGFloat = 2.5
+    let remainingDays: Int
+    var diameter: CGFloat = 36
+    var lineWidth: CGFloat = 3
 
     private var value: CountdownPerimeterProgressValue {
-        CountdownPerimeterProgressValue(progress)
+        CountdownCircularProgressValue(progress: progress, remainingDays: remainingDays).progress
     }
 
-    private var contourInset: CGFloat {
-        lineWidth / 2 + 1
-    }
-
-    private var contourRadius: CGFloat {
-        max(0, cornerRadius - contourInset)
+    private var displayedDays: Int {
+        CountdownCircularProgressValue(progress: progress, remainingDays: remainingDays).remainingDays
     }
 
     private var strokeStyle: StrokeStyle {
-        StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round)
+        StrokeStyle(lineWidth: lineWidth, lineCap: .round)
     }
 
     private var trackStyle: StrokeStyle {
-        StrokeStyle(lineWidth: max(1, lineWidth * 0.55), lineCap: .round, lineJoin: .round)
+        StrokeStyle(
+            lineWidth: max(1.2, lineWidth * 0.62),
+            lineCap: .round,
+            dash: [0.1, max(4.5, lineWidth * 2.4)]
+        )
+    }
+
+    private var trackColor: Color {
+        theme.isDark ? .white.opacity(0.62) : .black.opacity(0.34)
+    }
+
+    private var progressColor: Color {
+        theme.isDark ? .white : theme.accent
     }
 
     var body: some View {
-        if value.normalized != nil {
-            ZStack {
-                contour
-                    .stroke(theme.accent.opacity(0.42), style: trackStyle)
-
-                if value.showsActiveSegment, let normalized = value.normalized {
-                    contour
-                        .trim(from: 0, to: normalized)
-                        .stroke(theme.gradient, style: strokeStyle)
-                        .rotationEffect(.degrees(-90))
-                }
-
+        ZStack {
+            if value.normalized != nil {
                 Circle()
-                    .fill(theme.accent)
-                    .frame(width: lineWidth * 1.8, height: lineWidth * 1.8)
-                    .frame(maxHeight: .infinity, alignment: .top)
-                    .padding(.top, lineWidth / 2)
-            }
-            .padding(contourInset)
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
-        }
-    }
+                    .stroke(trackColor, style: trackStyle)
 
-    private var contour: RoundedRectangle {
-        RoundedRectangle(cornerRadius: contourRadius, style: .continuous)
+                    if value.showsActiveSegment, let normalized = value.normalized {
+                        Circle()
+                            .trim(from: 0, to: normalized)
+                            .stroke(progressColor, style: strokeStyle)
+                            .rotationEffect(.degrees(-90))
+                    }
+
+            }
+
+            Text("\(displayedDays)")
+                .font(.system(size: diameter * 0.34, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(theme.foreground)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+        }
+        .frame(width: diameter, height: diameter)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }

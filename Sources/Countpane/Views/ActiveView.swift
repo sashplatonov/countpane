@@ -89,14 +89,6 @@ struct CountdownCard: View {
         }
         .background(cardBackground)
         .clipShape(.rect(cornerRadius: density == .compactRow ? 15 : 18))
-        .overlay {
-            CountdownPerimeterProgress(
-                progress: progress,
-                theme: item.theme,
-                cornerRadius: density == .compactRow ? 15 : 18,
-                lineWidth: 2
-            )
-        }
         .overlay { cardBorder }
         .shadow(color: .black.opacity(isHovering ? 0.24 : 0.14), radius: isHovering ? 18 : 10, y: isHovering ? 9 : 5)
         .gentlePulse(every: pulseInterval)
@@ -146,6 +138,8 @@ struct CountdownCard: View {
             urgencyPill
                 .frame(minWidth: 92)
 
+            CountdownCircularProgress(progress: progress, theme: item.theme, remainingDays: item.daysRemaining(from: now))
+
             VStack(alignment: .trailing, spacing: 0) {
                 Text("\(duration.totalDays)")
                     .font(.system(size: 36, weight: .light, design: .rounded))
@@ -178,6 +172,7 @@ struct CountdownCard: View {
             HStack(alignment: .top) {
                 symbolTile(size: 58)
                 Spacer()
+                CountdownCircularProgress(progress: progress, theme: item.theme, remainingDays: item.daysRemaining(from: now))
                 Menu { cardActions } label: {
                     Image(systemName: "ellipsis")
                         .frame(width: 30, height: 30)

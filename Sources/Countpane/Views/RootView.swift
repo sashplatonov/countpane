@@ -29,7 +29,6 @@ struct RootView: View {
                     )
                     HStack(spacing: 0) {
                         sidebar(snapshot: snapshot)
-                        Divider().opacity(0.35)
                         mainContent(now: context.date, snapshot: snapshot)
                     }
                     .background(theme.canvas)
