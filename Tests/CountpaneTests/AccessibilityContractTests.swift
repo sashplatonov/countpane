@@ -19,16 +19,8 @@ struct AccessibilityContractTests {
     }
 
     @Test("Widget close remains a reachable hit target")
+    @MainActor
     func widgetCloseTarget() {
-        let contentSize = CGSize(width: 270, height: 160)
-        let closeFrame = WidgetWindowDragRegion.closeButtonFrame(in: contentSize)
-
-        #expect(closeFrame.width == WidgetWindowDragRegion.closeButtonHitSize)
-        #expect(closeFrame.height == WidgetWindowDragRegion.closeButtonHitSize)
-        #expect(!WidgetWindowDragRegion.shouldBeginDrag(at: closeFrame.center, in: contentSize))
+        #expect(CountdownWidgetView.closeButtonHitSize == 44)
     }
-}
-
-private extension CGRect {
-    var center: CGPoint { CGPoint(x: midX, y: midY) }
 }

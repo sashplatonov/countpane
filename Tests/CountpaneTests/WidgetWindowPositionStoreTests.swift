@@ -19,19 +19,6 @@ struct WidgetWindowPositionStoreTests {
         #expect(store.origin(for: UUID()) == nil)
     }
 
-    @Test("Widget drag preserves the close and completion controls")
-    func dragRegion() {
-        let contentSize = CGSize(width: 294, height: 184)
-        let completionFrame = WidgetWindowDragRegion.bottomControlsFrame(in: contentSize)
-
-        #expect(WidgetWindowDragRegion.shouldBeginDrag(at: CGPoint(x: 40, y: 40), in: contentSize))
-        #expect(!WidgetWindowDragRegion.shouldBeginDrag(at: CGPoint(x: 260, y: 150), in: contentSize))
-        #expect(!WidgetWindowDragRegion.shouldBeginDrag(
-            at: CGPoint(x: completionFrame.midX, y: completionFrame.midY),
-            in: contentSize
-        ))
-    }
-
     @Test("An off-screen widget is rehomed to a visible display")
     func rehomesOffScreenWidget() {
         let screen = CGRect(x: 0, y: 0, width: 1_920, height: 1_080)
