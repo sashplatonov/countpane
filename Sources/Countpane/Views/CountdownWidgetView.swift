@@ -36,6 +36,7 @@ struct CountdownWidgetView: View {
                 .fill(item.theme.accent.opacity(0.14))
                 .frame(width: 150, height: 150)
                 .offset(x: 112, y: -65)
+                .allowsHitTesting(false)
 
             VStack(alignment: .leading, spacing: 7) {
                 HStack(alignment: .top, spacing: 9) {
