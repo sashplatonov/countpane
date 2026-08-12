@@ -31,6 +31,7 @@ struct CountdownCircularProgress: View {
     let progress: Double?
     let theme: CountdownTheme
     let remainingDays: Int
+    var isDarkBackground = false
     var diameter: CGFloat = 36
     var lineWidth: CGFloat = 3
 
@@ -55,11 +56,15 @@ struct CountdownCircularProgress: View {
     }
 
     private var trackColor: Color {
-        theme.isDark ? .white.opacity(0.62) : .black.opacity(0.34)
+        isDarkBackground ? .white.opacity(0.72) : .black.opacity(0.42)
     }
 
     private var progressColor: Color {
-        theme.isDark ? .white : theme.accent
+        isDarkBackground ? .white : theme.accent
+    }
+
+    private var numberColor: Color {
+        isDarkBackground ? .white : theme.foreground
     }
 
     var body: some View {
@@ -80,7 +85,7 @@ struct CountdownCircularProgress: View {
             Text("\(displayedDays)")
                 .font(.system(size: diameter * 0.34, weight: .bold, design: .rounded))
                 .monospacedDigit()
-                .foregroundStyle(theme.foreground)
+                .foregroundStyle(numberColor)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
         }

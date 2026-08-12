@@ -138,7 +138,12 @@ struct CountdownCard: View {
 
             urgencyPill
 
-            CountdownCircularProgress(progress: progress, theme: item.theme, remainingDays: progressDisplay.value)
+            CountdownCircularProgress(
+                progress: progress,
+                theme: item.theme,
+                remainingDays: progressDisplay.value,
+                isDarkBackground: theme.colorScheme == .dark
+            )
 
             Text(progressDisplay.label)
                 .font(.system(size: 13, weight: .medium))
@@ -184,7 +189,14 @@ struct CountdownCard: View {
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 10) {
-                CountdownCircularProgress(progress: progress, theme: item.theme, remainingDays: progressDisplay.value, diameter: 48, lineWidth: 3.5)
+                CountdownCircularProgress(
+                    progress: progress,
+                    theme: item.theme,
+                    remainingDays: progressDisplay.value,
+                    isDarkBackground: theme.colorScheme == .dark,
+                    diameter: 48,
+                    lineWidth: 3.5
+                )
                 Text(progressDisplay.label)
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.secondary)

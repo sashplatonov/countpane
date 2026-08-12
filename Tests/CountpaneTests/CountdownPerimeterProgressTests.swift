@@ -44,4 +44,17 @@ struct CountdownPerimeterProgressTests {
         #expect(value.progress.normalized == nil)
         #expect(value.remainingDays == 0)
     }
+
+    @Test("Circular progress accepts the surrounding background contrast")
+    @MainActor
+    func circularProgressBackground() {
+        let lightCountdownOnDarkSurface = CountdownCircularProgress(
+            progress: 0.5,
+            theme: .peach,
+            remainingDays: 5,
+            isDarkBackground: true
+        )
+
+        #expect(lightCountdownOnDarkSurface.isDarkBackground)
+    }
 }

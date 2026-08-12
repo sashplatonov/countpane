@@ -57,6 +57,7 @@ struct CountdownWidgetView: View {
                         progress: progress,
                         theme: item.theme,
                         remainingDays: progressDisplay.value,
+                        isDarkBackground: item.theme.isDark,
                         diameter: 46,
                         lineWidth: 3.5
                     )
