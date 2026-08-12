@@ -54,13 +54,13 @@ desktop widget, and the wide dashboard composition used for the social preview.
 
 ![Countpane dashboard with Vacation, Product Launch, and Mom's Birthday mock countdowns](docs/app-preview.png)
 
-![Countpane wide dashboard composition with synthetic countdowns](docs/social-preview.png)
+![Countpane wide dashboard composition with synthetic countdowns and compact circular progress](docs/social-preview.png)
 
 ![Countpane countdown editor with target date, note, urgency, and desktop widget controls](docs/editor-preview.png)
 
 ![Countpane settings with login, update checks, appearance, and local data controls](docs/settings-preview.png)
 
-![Countpane floating desktop widget with a synthetic Product Launch countdown](docs/widget-preview.png)
+![Countpane floating desktop widget with a synthetic Product Launch countdown and compact circular progress](docs/widget-preview.png)
 
 All committed images use synthetic data. For menu-bar reopening, VoiceOver,
 multi-display, and other runtime proof, follow the [manual macOS verification
