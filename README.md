@@ -13,6 +13,7 @@ Countpane is a private, native Mac app for deadlines, anniversaries, trips, laun
 - [Install with Homebrew](#install-with-homebrew)
 - [Why Countpane](#why-countpane)
 - [What you can do](#what-you-can-do)
+- [Product tour](#product-tour)
 - [Get started](#get-started)
 - [Privacy and backups](#privacy-and-backups)
 - [Updates](#updates)
@@ -45,12 +46,25 @@ brew upgrade --cask countpane
 
 [↑ Back to top](#top)
 
-![Countpane dashboard preview with synthetic countdowns](docs/app-preview.png)
+## 🎬 Product tour
 
-![Countpane wide product preview with synthetic countdowns](docs/social-preview.png)
+The screenshots below use isolated, English-only mock countdowns. They
+show the complete product surface at a glance: the dashboard, editor, settings,
+desktop widget, and the wide dashboard composition used for the social preview.
 
-The committed images use synthetic data. For menu-bar, widget, VoiceOver, and
-multi-display runtime proof, follow the [manual macOS verification checklist](docs/manual-macos-verification.md).
+![Countpane dashboard with Vacation, Product Launch, and Mom's Birthday mock countdowns](docs/app-preview.png)
+
+![Countpane wide dashboard composition with synthetic countdowns](docs/social-preview.png)
+
+![Countpane countdown editor with target date, note, urgency, and desktop widget controls](docs/editor-preview.png)
+
+![Countpane settings with login, update checks, appearance, and local data controls](docs/settings-preview.png)
+
+![Countpane floating desktop widget with a synthetic Product Launch countdown](docs/widget-preview.png)
+
+All committed images use synthetic data. For menu-bar reopening, VoiceOver,
+multi-display, and other runtime proof, follow the [manual macOS verification
+checklist](docs/manual-macos-verification.md).
 
 ## ✨ Why Countpane
 
