@@ -60,6 +60,7 @@ struct ActiveView: View {
 struct CountdownCard: View {
     @Environment(AppModel.self) private var model
     @State private var isHovering = false
+    @State private var isCompletionConfirmationPresented = false
     @AppStorage("appTheme") private var appTheme = AppTheme.ink.rawValue
 
     let item: CountdownItem
@@ -101,6 +102,18 @@ struct CountdownCard: View {
         .accessibilityLabel("\(item.title), \(duration.accessibilityText), \(urgency.rawValue)")
         .accessibilityValue(progressAccessibilityValue)
         .contextMenu { cardActions }
+        .confirmationDialog(
+            "Mark countdown completed?",
+            isPresented: $isCompletionConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Mark Completed", role: .destructive) {
+                model.complete(item)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("\(item.title) will move to Completed.")
+        }
     }
 
     private var compactRow: some View {
@@ -151,7 +164,7 @@ struct CountdownCard: View {
                 .frame(width: 88, alignment: .leading)
 
             Button {
-                model.complete(item)
+                isCompletionConfirmationPresented = true
             } label: {
                 Image(systemName: "checkmark.circle")
                     .font(.system(size: 17, weight: .semibold))
@@ -227,7 +240,7 @@ struct CountdownCard: View {
                 Button("Edit", action: onEdit)
                     .buttonStyle(ThemeSecondaryButtonStyle(theme: theme))
                     .countpaneNoFocusRing()
-                Button("Complete") { model.complete(item) }
+                Button("Complete") { isCompletionConfirmationPresented = true }
                     .buttonStyle(ThemePrimaryButtonStyle(theme: theme))
                     .countpaneNoFocusRing()
             }
@@ -324,7 +337,7 @@ struct CountdownCard: View {
             }
         }
         Button("Edit", systemImage: "pencil", action: onEdit)
-        Button("Mark Completed", systemImage: "checkmark.circle") { model.complete(item) }
+        Button("Mark Completed", systemImage: "checkmark.circle") { isCompletionConfirmationPresented = true }
         Divider()
         Button("Delete", systemImage: "trash", role: .destructive) { model.delete(item) }
     }

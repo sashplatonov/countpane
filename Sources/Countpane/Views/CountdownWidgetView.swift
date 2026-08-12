@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CountdownWidgetView: View {
     @Environment(AppModel.self) private var model
+    @State private var isCompletionConfirmationPresented = false
     let id: UUID
 
     static let contentSize = CGSize(width: 270, height: 160)
@@ -121,5 +122,17 @@ struct CountdownWidgetView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(item.title), \(duration.accessibilityText)")
         .accessibilityValue(CountdownPerimeterProgressValue(progress).accessibilityValue ?? "")
+        .confirmationDialog(
+            "Mark countdown completed?",
+            isPresented: $isCompletionConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Mark Completed", role: .destructive) {
+                model.complete(item)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("\(item.title) will move to Completed.")
+        }
     }
 }
