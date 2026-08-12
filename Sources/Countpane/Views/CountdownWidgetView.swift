@@ -76,7 +76,7 @@ struct CountdownWidgetView: View {
                     Spacer()
 
                     Button {
-                        model.complete(item)
+                        isCompletionConfirmationPresented = true
                     } label: {
                         Image(systemName: "checkmark.circle")
                             .font(.system(size: 15, weight: .semibold))
