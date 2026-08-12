@@ -136,9 +136,30 @@ enum WidgetWindowPlacement {
     }
 }
 
-private final class WidgetPanel: NSPanel {
+final class WidgetPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
+
+    override func sendEvent(_ event: NSEvent) {
+        guard event.type == .leftMouseDown,
+              Self.shouldStartDrag(from: contentView?.hitTest(event.locationInWindow)) else {
+            super.sendEvent(event)
+            return
+        }
+
+        performDrag(with: event)
+    }
+
+    static func shouldStartDrag(from hitView: NSView?) -> Bool {
+        var view = hitView
+        while let current = view {
+            if current is NSButton || current.accessibilityRole() == .button {
+                return false
+            }
+            view = current.superview
+        }
+        return true
+    }
 }
 
 struct WidgetWindowPositionStore {

@@ -30,7 +30,6 @@ struct CountdownWidgetView: View {
         return ZStack {
             item.theme.gradient
                 .contentShape(Rectangle())
-                .gesture(WindowDragGesture())
 
             Circle()
                 .fill(item.theme.accent.opacity(0.14))
@@ -53,7 +52,6 @@ struct CountdownWidgetView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(.trailing, Self.closeButtonHitSize)
-                .gesture(WindowDragGesture())
 
                 Spacer(minLength: 0)
 
@@ -70,7 +68,6 @@ struct CountdownWidgetView: View {
                         .font(.system(size: 17, weight: .semibold, design: .rounded))
                         .lineLimit(2)
                 }
-                .gesture(WindowDragGesture())
 
                 HStack {
                     Label(urgency.rawValue, systemImage: urgency.icon)
@@ -78,7 +75,6 @@ struct CountdownWidgetView: View {
                         .padding(.horizontal, 9)
                         .padding(.vertical, 5)
                         .background(item.theme.accent.opacity(0.18 + urgency.emphasis), in: Capsule())
-                        .gesture(WindowDragGesture())
                     Spacer()
 
                     Button {
@@ -96,7 +92,6 @@ struct CountdownWidgetView: View {
                     Text(item.targetDate, format: .dateTime.day().month(.abbreviated))
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(item.theme.secondary)
-                        .gesture(WindowDragGesture())
                 }
             }
             .foregroundStyle(item.theme.foreground)

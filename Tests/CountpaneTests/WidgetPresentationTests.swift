@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 import Testing
 @testable import Countpane
 
@@ -15,6 +15,22 @@ struct DesktopWidgetPresentationTests {
     func defaults() {
         let item = CountdownItem(title: "Trip", targetDate: .now)
         #expect(item.isWidgetVisible)
+    }
+
+    @Test("Widget drags all content except button hit views")
+    func dragHitTesting() {
+        let content = NSView(frame: .zero)
+        let text = NSView(frame: .zero)
+        let button = NSButton(title: "Complete", target: nil, action: nil)
+        let buttonContent = NSView(frame: .zero)
+
+        content.addSubview(text)
+        content.addSubview(button)
+        button.addSubview(buttonContent)
+
+        #expect(WidgetPanel.shouldStartDrag(from: text))
+        #expect(!WidgetPanel.shouldStartDrag(from: button))
+        #expect(!WidgetPanel.shouldStartDrag(from: buttonContent))
     }
 
 }
