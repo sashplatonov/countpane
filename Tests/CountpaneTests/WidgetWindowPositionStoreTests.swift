@@ -19,12 +19,17 @@ struct WidgetWindowPositionStoreTests {
         #expect(store.origin(for: UUID()) == nil)
     }
 
-    @Test("Widget drag keeps the close button interactive")
+    @Test("Widget drag preserves the close and completion controls")
     func dragRegion() {
         let contentSize = CGSize(width: 294, height: 184)
+        let completionFrame = WidgetWindowDragRegion.bottomControlsFrame(in: contentSize)
 
         #expect(WidgetWindowDragRegion.shouldBeginDrag(at: CGPoint(x: 40, y: 40), in: contentSize))
         #expect(!WidgetWindowDragRegion.shouldBeginDrag(at: CGPoint(x: 260, y: 150), in: contentSize))
+        #expect(!WidgetWindowDragRegion.shouldBeginDrag(
+            at: CGPoint(x: completionFrame.midX, y: completionFrame.midY),
+            in: contentSize
+        ))
     }
 
     @Test("An off-screen widget is rehomed to a visible display")

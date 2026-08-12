@@ -73,6 +73,19 @@ struct CountdownWidgetView: View {
                         .padding(.vertical, 5)
                         .background(item.theme.accent.opacity(0.18 + urgency.emphasis), in: Capsule())
                     Spacer()
+
+                    Button {
+                        model.complete(item)
+                    } label: {
+                        Image(systemName: "checkmark.circle")
+                            .font(.system(size: 15, weight: .semibold))
+                            .frame(width: 26, height: 26)
+                    }
+                    .buttonStyle(.plain)
+                    .countpaneNoFocusRing()
+                    .help("Mark countdown completed")
+                    .accessibilityLabel("Mark countdown completed")
+
                     Text(item.targetDate, format: .dateTime.day().month(.abbreviated))
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(item.theme.secondary)

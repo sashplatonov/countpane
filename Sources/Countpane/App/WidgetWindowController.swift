@@ -163,9 +163,12 @@ private final class WidgetPanel: NSPanel {
 enum WidgetWindowDragRegion {
     static let outerInset: CGFloat = 12
     static let closeButtonHitSize: CGFloat = 44
+    static let bottomControlHitWidth: CGFloat = 108
+    static let bottomControlHitHeight: CGFloat = 60
 
     static func shouldBeginDrag(at location: CGPoint, in contentSize: CGSize) -> Bool {
         !closeButtonFrame(in: contentSize).contains(location)
+            && !bottomControlsFrame(in: contentSize).contains(location)
     }
 
     static func closeButtonFrame(in contentSize: CGSize) -> CGRect {
@@ -175,6 +178,15 @@ enum WidgetWindowDragRegion {
             y: contentSize.height - outerInset - size,
             width: size,
             height: size
+        )
+    }
+
+    static func bottomControlsFrame(in contentSize: CGSize) -> CGRect {
+        CGRect(
+            x: max(outerInset, contentSize.width - outerInset - bottomControlHitWidth),
+            y: outerInset,
+            width: min(bottomControlHitWidth, max(0, contentSize.width - outerInset * 2)),
+            height: bottomControlHitHeight
         )
     }
 }

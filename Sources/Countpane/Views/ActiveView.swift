@@ -150,6 +150,19 @@ struct CountdownCard: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 88, alignment: .leading)
 
+            Button {
+                model.complete(item)
+            } label: {
+                Image(systemName: "checkmark.circle")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(item.theme.accent)
+                    .frame(width: 44, height: 44)
+            }
+            .buttonStyle(.plain)
+            .countpaneNoFocusRing()
+            .help("Mark countdown completed")
+            .accessibilityLabel("Mark countdown completed")
+
             Button(action: onEdit) {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 18, weight: .medium))
