@@ -91,6 +91,28 @@ struct CountdownDurationTests {
         #expect(duration.totalDays == 9)
         #expect(duration.compactText == "1 week 2 days")
         #expect(duration.accessibilityText == "1 week 2 days overdue")
+        #expect(duration.progressDisplay == .init(value: 0, label: "days remaining"))
+    }
+
+    @Test("Progress display rounds to one readable remaining-time unit")
+    func progressDisplay() {
+        let start = calendar.date(from: DateComponents(year: 2026, month: 1, day: 1))!
+
+        let days = CountdownDuration.between(start, and: calendar.date(byAdding: .day, value: 5, to: start)!, calendar: calendar)
+        let weekBoundary = CountdownDuration.between(start, and: calendar.date(byAdding: .day, value: 7, to: start)!, calendar: calendar)
+        let oneWeek = CountdownDuration.between(start, and: calendar.date(byAdding: .day, value: 8, to: start)!, calendar: calendar)
+        let twoWeeks = CountdownDuration.between(start, and: calendar.date(byAdding: .day, value: 11, to: start)!, calendar: calendar)
+        let monthBoundary = CountdownDuration.between(start, and: calendar.date(byAdding: .day, value: 30, to: start)!, calendar: calendar)
+        let month = CountdownDuration.between(start, and: calendar.date(byAdding: .day, value: 31, to: start)!, calendar: calendar)
+        let twoMonths = CountdownDuration.between(start, and: calendar.date(byAdding: .day, value: 45, to: start)!, calendar: calendar)
+
+        #expect(days.progressDisplay == .init(value: 5, label: "days remaining"))
+        #expect(weekBoundary.progressDisplay == .init(value: 1, label: "week remaining"))
+        #expect(oneWeek.progressDisplay == .init(value: 1, label: "week remaining"))
+        #expect(twoWeeks.progressDisplay == .init(value: 2, label: "weeks remaining"))
+        #expect(monthBoundary.progressDisplay == .init(value: 1, label: "month remaining"))
+        #expect(month.progressDisplay == .init(value: 1, label: "month remaining"))
+        #expect(twoMonths.progressDisplay == .init(value: 2, label: "months remaining"))
     }
 
     @Test("Time of day does not change the day count")

@@ -72,6 +72,7 @@ struct CountdownCard: View {
     private var urgency: CountdownUrgency { item.urgency(from: now) }
     private var duration: CountdownDuration { item.remainingDuration(from: now) }
     private var progress: Double? { item.progress(at: now) }
+    private var progressDisplay: CountdownProgressDisplay { duration.progressDisplay }
     private var progressAccessibilityValue: String {
         CountdownPerimeterProgressValue(progress).accessibilityValue ?? ""
     }
@@ -136,20 +137,13 @@ struct CountdownCard: View {
             Spacer(minLength: 20)
 
             urgencyPill
-                .frame(minWidth: 92)
 
-            CountdownCircularProgress(progress: progress, theme: item.theme, remainingDays: item.daysRemaining(from: now))
+            CountdownCircularProgress(progress: progress, theme: item.theme, remainingDays: progressDisplay.value)
 
-            VStack(alignment: .trailing, spacing: 0) {
-                Text("\(duration.totalDays)")
-                    .font(.system(size: 36, weight: .light, design: .rounded))
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-                Text(duration.totalDays == 1 ? "day" : "days")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
-            .frame(width: 74, alignment: .trailing)
+            Text(progressDisplay.label)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(.secondary)
+                .frame(width: 88, alignment: .leading)
 
             Button(action: onEdit) {
                 Image(systemName: "chevron.right")
@@ -172,7 +166,6 @@ struct CountdownCard: View {
             HStack(alignment: .top) {
                 symbolTile(size: 58)
                 Spacer()
-                CountdownCircularProgress(progress: progress, theme: item.theme, remainingDays: item.daysRemaining(from: now))
                 Menu { cardActions } label: {
                     Image(systemName: "ellipsis")
                         .frame(width: 30, height: 30)
@@ -190,15 +183,11 @@ struct CountdownCard: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("\(duration.totalDays)")
-                        .font(.system(size: 40, weight: .light, design: .rounded))
-                        .monospacedDigit()
-                    Text(duration.totalDays == 1 ? "day remaining" : "days remaining")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+            HStack(spacing: 10) {
+                CountdownCircularProgress(progress: progress, theme: item.theme, remainingDays: progressDisplay.value, diameter: 48, lineWidth: 3.5)
+                Text(progressDisplay.label)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
                 Spacer()
                 urgencyPill
             }
@@ -253,7 +242,7 @@ struct CountdownCard: View {
     }
 
     private var urgencyPill: some View {
-        Text(duration.totalDays == 0 ? "Today" : "\(duration.totalDays) days")
+        Text(urgency.rawValue)
             .font(.system(size: 13, weight: .semibold))
             .foregroundStyle(pillForeground)
             .padding(.horizontal, 14)

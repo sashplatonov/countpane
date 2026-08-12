@@ -109,10 +109,28 @@ struct CountdownDuration: Equatable, Sendable {
         return isOverdue ? "\(compactText) overdue" : "\(compactText) remaining"
     }
 
+    var progressDisplay: CountdownProgressDisplay {
+        guard !isOverdue else { return .init(value: 0, label: "days remaining") }
+        if totalDays >= 30 {
+            let months = Int((Double(totalDays) / 30).rounded(.toNearestOrAwayFromZero))
+            return .init(value: months, label: months == 1 ? "month remaining" : "months remaining")
+        }
+        if totalDays >= 7 {
+            let weeks = Int((Double(totalDays) / 7).rounded(.toNearestOrAwayFromZero))
+            return .init(value: weeks, label: weeks == 1 ? "week remaining" : "weeks remaining")
+        }
+        return .init(value: totalDays, label: totalDays == 1 ? "day remaining" : "days remaining")
+    }
+
     private func unit(_ value: Int, singular: String, plural: String) -> String? {
         guard value > 0 else { return nil }
         return "\(value) \(value == 1 ? singular : plural)"
     }
+}
+
+struct CountdownProgressDisplay: Equatable, Sendable {
+    let value: Int
+    let label: String
 }
 
 enum CountdownUrgency: String, CaseIterable, Sendable {

@@ -24,6 +24,7 @@ struct CountdownWidgetView: View {
         let duration = item.remainingDuration(from: now)
         let urgency = item.urgency(from: now)
         let progress = item.progress(at: now)
+        let progressDisplay = duration.progressDisplay
 
         return ZStack {
             item.theme.gradient
@@ -51,11 +52,18 @@ struct CountdownWidgetView: View {
 
                 Spacer(minLength: 0)
 
-                Text(duration.compactText)
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .minimumScaleFactor(0.7)
-                    .lineLimit(1)
-                    .contentTransition(.numericText())
+                HStack(spacing: 10) {
+                    CountdownCircularProgress(
+                        progress: progress,
+                        theme: item.theme,
+                        remainingDays: progressDisplay.value,
+                        diameter: 46,
+                        lineWidth: 3.5
+                    )
+                    Text(progressDisplay.label)
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .lineLimit(2)
+                }
 
                 HStack {
                     Label(urgency.rawValue, systemImage: urgency.icon)
@@ -68,7 +76,6 @@ struct CountdownWidgetView: View {
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(item.theme.secondary)
                 }
-                .padding(.trailing, 42)
             }
             .foregroundStyle(item.theme.foreground)
             .padding(14)
@@ -91,16 +98,6 @@ struct CountdownWidgetView: View {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(alignment: .bottomTrailing) {
-            CountdownCircularProgress(
-                progress: progress,
-                theme: item.theme,
-                remainingDays: item.daysRemaining(from: now),
-                diameter: 34,
-                lineWidth: 3
-            )
-                .padding(14)
-        }
         .overlay {
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .stroke(.white.opacity(item.theme.isDark ? 0.12 : 0.34), lineWidth: 1)
