@@ -29,6 +29,8 @@ struct CountdownWidgetView: View {
 
         return ZStack {
             item.theme.gradient
+                .contentShape(Rectangle())
+                .gesture(WindowDragGesture())
 
             Circle()
                 .fill(item.theme.accent.opacity(0.14))

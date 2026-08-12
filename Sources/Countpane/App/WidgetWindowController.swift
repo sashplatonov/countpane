@@ -53,7 +53,7 @@ final class WidgetWindowController: NSObject, NSWindowDelegate {
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
-        panel.isMovableByWindowBackground = true
+        panel.isMovableByWindowBackground = false
         panel.hidesOnDeactivate = false
         panel.contentView = NSHostingView(
             rootView: CountdownWidgetView(id: id).environment(AppModel.shared)
