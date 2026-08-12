@@ -55,8 +55,8 @@ final class WidgetWindowController: NSObject, NSWindowDelegate {
         panel.hasShadow = false
         panel.isMovableByWindowBackground = false
         panel.hidesOnDeactivate = false
-        panel.contentView = NSHostingView(
-            rootView: CountdownWidgetView(id: id).environment(AppModel.shared)
+        panel.contentView = WidgetHostingView(
+            rootView: AnyView(CountdownWidgetView(id: id).environment(AppModel.shared))
         )
 
         panel.setFrameOrigin(origin(for: id, initialPositionIndex: initialPositionIndex))
@@ -134,6 +134,10 @@ enum WidgetWindowPlacement {
             y: min(max(origin.y, screen.minY), maxY)
         )
     }
+}
+
+final class WidgetHostingView: NSHostingView<AnyView> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }
 
 final class WidgetPanel: NSPanel {

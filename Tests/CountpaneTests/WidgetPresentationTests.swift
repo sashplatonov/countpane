@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 import Testing
 @testable import Countpane
 
@@ -31,6 +32,12 @@ struct DesktopWidgetPresentationTests {
         #expect(WidgetPanel.shouldStartDrag(from: text))
         #expect(!WidgetPanel.shouldStartDrag(from: button))
         #expect(!WidgetPanel.shouldStartDrag(from: buttonContent))
+    }
+
+    @Test("Widget content accepts the first click on an inactive panel")
+    func acceptsFirstMouse() {
+        let hostingView = WidgetHostingView(rootView: AnyView(Color.clear))
+        #expect(hostingView.acceptsFirstMouse(for: nil))
     }
 
 }
