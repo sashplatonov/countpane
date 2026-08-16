@@ -162,7 +162,44 @@ final class WidgetPanel: NSPanel {
             }
             view = current.superview
         }
-        return true
+
+        perform(Self.performWindowDragSelector, with: event)
+    }
+}
+
+enum WidgetWindowDragRegion {
+    static let outerInset: CGFloat = 12
+    static let closeButtonHitSize: CGFloat = 44
+    static let completeButtonHitSize: CGFloat = 44
+
+    /// The hosting view is flipped (top-left origin), so button frames are
+    /// expressed in top-left coordinates to match the SwiftUI layout.
+    static func shouldBeginDrag(at location: CGPoint, in contentSize: CGSize) -> Bool {
+        !interactiveFrames(in: contentSize).contains(where: { $0.contains(location) })
+    }
+
+    static func interactiveFrames(in contentSize: CGSize) -> [CGRect] {
+        [closeButtonFrame(in: contentSize), completeButtonFrame(in: contentSize)]
+    }
+
+    static func closeButtonFrame(in contentSize: CGSize) -> CGRect {
+        let size = closeButtonHitSize
+        return CGRect(
+            x: contentSize.width - outerInset - size,
+            y: outerInset,
+            width: size,
+            height: size
+        )
+    }
+
+    static func completeButtonFrame(in contentSize: CGSize) -> CGRect {
+        let size = completeButtonHitSize
+        return CGRect(
+            x: contentSize.width - outerInset - size * 2,
+            y: outerInset,
+            width: size,
+            height: size
+        )
     }
 }
 
