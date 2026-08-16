@@ -19,9 +19,9 @@ struct WidgetWindowPositionStoreTests {
         #expect(store.origin(for: UUID()) == nil)
     }
 
-    @Test("An off-screen widget is rehomed to a visible display")
-    func rehomesOffScreenWidget() {
-        let screen = CGRect(x: 0, y: 0, width: 1_920, height: 1_080)
+    @Test("Widget drag keeps the interactive buttons clickable")
+    func dragRegion() {
+        let contentSize = CGSize(width: 294, height: 184)
 
         #expect(WidgetWindowDragRegion.shouldBeginDrag(at: CGPoint(x: 40, y: 40), in: contentSize))
         #expect(!WidgetWindowDragRegion.shouldBeginDrag(at: CGPoint(x: 260, y: 30), in: contentSize))
