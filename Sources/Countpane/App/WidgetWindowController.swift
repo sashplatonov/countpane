@@ -148,23 +148,16 @@ final class WidgetPanel: NSPanel {
 
     override func sendEvent(_ event: NSEvent) {
         guard event.type == .leftMouseDown,
-              Self.shouldStartDrag(from: contentView?.hitTest(event.locationInWindow)) else {
+              let contentView,
+              WidgetWindowDragRegion.shouldBeginDrag(
+                at: contentView.convert(event.locationInWindow, from: nil),
+                in: contentView.bounds.size
+              ) else {
             super.sendEvent(event)
             return
         }
 
         perform(Self.performWindowDragSelector, with: event)
-    }
-
-    static func shouldStartDrag(from hitView: NSView?) -> Bool {
-        var view = hitView
-        while let current = view {
-            if current is NSButton || current.accessibilityRole() == .button {
-                return false
-            }
-            view = current.superview
-        }
-        return true
     }
 }
 

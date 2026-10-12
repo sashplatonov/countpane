@@ -18,20 +18,24 @@ struct DesktopWidgetPresentationTests {
         #expect(item.isWidgetVisible)
     }
 
-    @Test("Widget drags all content except button hit views")
-    func dragHitTesting() {
-        let content = NSView(frame: .zero)
-        let text = NSView(frame: .zero)
-        let button = NSButton(title: "Complete", target: nil, action: nil)
-        let buttonContent = NSView(frame: .zero)
+    @Test("Panel converts window clicks to top-left hosting coordinates")
+    func dragCoordinates() {
+        let panel = WidgetPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 294, height: 184),
+            styleMask: [.borderless], backing: .buffered, defer: false
+        )
+        let hostingView = WidgetHostingView(rootView: AnyView(Color.clear))
+        panel.contentView = hostingView
+        hostingView.frame = NSRect(x: 0, y: 0, width: 294, height: 184)
 
-        content.addSubview(text)
-        content.addSubview(button)
-        button.addSubview(buttonContent)
-
-        #expect(WidgetPanel.shouldStartDrag(from: text))
-        #expect(!WidgetPanel.shouldStartDrag(from: button))
-        #expect(!WidgetPanel.shouldStartDrag(from: buttonContent))
+        #expect(hostingView.isFlipped)
+        for windowPoint in [CGPoint(x: 260, y: 154), CGPoint(x: 210, y: 154)] {
+            let contentPoint = hostingView.convert(windowPoint, from: nil)
+            #expect(contentPoint.y == 30)
+            #expect(!WidgetWindowDragRegion.shouldBeginDrag(at: contentPoint, in: hostingView.bounds.size))
+        }
+        let bodyPoint = hostingView.convert(CGPoint(x: 40, y: 90), from: nil)
+        #expect(WidgetWindowDragRegion.shouldBeginDrag(at: bodyPoint, in: hostingView.bounds.size))
     }
 
     @Test("Widget content accepts the first click on an inactive panel")

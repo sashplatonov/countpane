@@ -2,7 +2,6 @@ import SwiftUI
 
 struct CountdownWidgetView: View {
     @Environment(AppModel.self) private var model
-    @State private var isCompletionConfirmationPresented = false
     let id: UUID
 
     static let contentSize = CGSize(width: 270, height: 160)
@@ -14,6 +13,7 @@ struct CountdownWidgetView: View {
             if let item = model.item(id: id), !item.isCompleted, item.isWidgetVisible {
                 widget(item, now: context.date)
                     .frame(width: Self.contentSize.width, height: Self.contentSize.height)
+                    .padding(WidgetWindowDragRegion.outerInset)
             } else {
                 Color.clear
                     .frame(width: 1, height: 1)
@@ -78,18 +78,6 @@ struct CountdownWidgetView: View {
                         .background(item.theme.accent.opacity(0.18 + urgency.emphasis), in: Capsule())
                     Spacer()
 
-                    Button {
-                        isCompletionConfirmationPresented = true
-                    } label: {
-                        Image(systemName: "checkmark.circle")
-                            .font(.system(size: 15, weight: .semibold))
-                            .frame(width: 26, height: 26)
-                    }
-                    .buttonStyle(.plain)
-                    .countpaneNoFocusRing()
-                    .help("Mark countdown completed")
-                    .accessibilityLabel("Mark countdown completed")
-
                     Text(item.targetDate, format: .dateTime.day().month(.abbreviated))
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(item.theme.secondary)
@@ -108,6 +96,7 @@ struct CountdownWidgetView: View {
                             .frame(width: 26, height: 26)
                             .background(.ultraThinMaterial, in: Circle())
                             .frame(width: Self.completeButtonHitSize, height: Self.completeButtonHitSize)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .countpaneNoFocusRing()
@@ -123,6 +112,7 @@ struct CountdownWidgetView: View {
                             .frame(width: 26, height: 26)
                             .background(.ultraThinMaterial, in: Circle())
                             .frame(width: Self.closeButtonHitSize, height: Self.closeButtonHitSize)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .countpaneNoFocusRing()
@@ -137,21 +127,8 @@ struct CountdownWidgetView: View {
                 .stroke(.white.opacity(item.theme.isDark ? 0.12 : 0.34), lineWidth: 1)
         }
         .gentlePulse(every: item.attentionEnabled ? urgency.pulseInterval : nil)
-        .padding(12)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
         .accessibilityLabel("\(item.title), \(duration.accessibilityText)")
         .accessibilityValue(CountdownPerimeterProgressValue(progress).accessibilityValue ?? "")
-        .confirmationDialog(
-            "Mark countdown completed?",
-            isPresented: $isCompletionConfirmationPresented,
-            titleVisibility: .visible
-        ) {
-            Button("Mark Completed", role: .destructive) {
-                model.complete(item)
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("\(item.title) will move to Completed.")
-        }
     }
 }
