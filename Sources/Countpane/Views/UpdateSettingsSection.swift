@@ -58,7 +58,7 @@ struct UpdateSettingsSection: View {
                 theme: theme
             )
 
-            Text("Checks use the public GitHub Releases API. No countdown titles, dates, notes, or other personal data are sent.")
+            Text("Checks follow the public GitHub latest-release link. No countdown titles, dates, notes, or other personal data are sent.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 4)

@@ -13,7 +13,7 @@ final class UpdateController {
     static let shared = UpdateController()
 
     private(set) var status: UpdateStatus = .idle
-    private(set) var latestRelease: GitHubRelease?
+    private(set) var latestRelease: LatestRelease?
     private(set) var installationChannel: InstallationChannel = .unknown
     private(set) var automaticChecksEnabled: Bool
 
@@ -27,10 +27,11 @@ final class UpdateController {
     private let now: @Sendable () -> Date
     private let currentVersion: @Sendable () -> String
 
-    private static let repositoryURL = URL(string: "https://github.com/sashplatonov/countpane/releases/latest")!
+    private static let repositoryURL = GitHubReleaseClient.latestReleaseEndpoint
     private static let automaticCheckInterval: TimeInterval = 6 * 60 * 60
     private static let minimumLaunchCheckInterval: TimeInterval = 60 * 60
     private static let lastCheckKey = "update.lastSuccessfulCheck"
+    static let rateLimitRetryAtKey = "update.rateLimitRetryAt"
     private static let automaticChecksKey = "update.automaticChecksEnabled"
 
     init(
@@ -144,6 +145,13 @@ final class UpdateController {
 
     func checkForUpdates(userInitiated: Bool) async {
         guard userInitiated || automaticChecksEnabled else { return }
+        if let retryAt = defaults.object(forKey: Self.rateLimitRetryAtKey) as? Date {
+            guard now() >= retryAt else {
+                status = .failed(UpdateServiceError.rateLimited(retryAt: retryAt).errorDescription ?? "GitHub rate-limited update checks.")
+                return
+            }
+            defaults.removeObject(forKey: Self.rateLimitRetryAtKey)
+        }
         if !userInitiated,
            let lastCheck = defaults.object(forKey: Self.lastCheckKey) as? Date,
            now().timeIntervalSince(lastCheck) < Self.minimumLaunchCheckInterval {
@@ -199,6 +207,7 @@ final class UpdateController {
             }
             latestRelease = release
             let checkedAt = now()
+            defaults.removeObject(forKey: Self.rateLimitRetryAtKey)
             defaults.set(checkedAt, forKey: Self.lastCheckKey)
             status = currentVersion < latestVersion
                 ? .available(version: latestVersion.description)
@@ -206,6 +215,10 @@ final class UpdateController {
         } catch is CancellationError {
             status = .idle
         } catch {
+            if let updateError = error as? UpdateServiceError,
+               case .rateLimited(let retryAt) = updateError {
+                defaults.set(retryAt, forKey: Self.rateLimitRetryAtKey)
+            }
             status = .failed((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)
         }
     }

@@ -79,38 +79,45 @@ struct SafeProcessRunner: ProcessExecuting {
 }
 
 protocol ReleaseChecking: Sendable {
-    func latestRelease() async throws -> GitHubRelease
+    func latestRelease() async throws -> LatestRelease
 }
 
 final class GitHubReleaseClient: ReleaseChecking, @unchecked Sendable {
+    static let latestReleaseEndpoint = URL(string: "https://github.com/sashplatonov/countpane/releases/latest")!
+
     private let session: URLSession
     private let endpoint: URL
 
     init(
         session: URLSession = .shared,
-        endpoint: URL = URL(string: "https://api.github.com/repos/sashplatonov/countpane/releases/latest")!
+        endpoint: URL = latestReleaseEndpoint
     ) {
         self.session = session
         self.endpoint = endpoint
     }
 
-    func latestRelease() async throws -> GitHubRelease {
+    func latestRelease() async throws -> LatestRelease {
         var request = URLRequest(url: endpoint)
         request.timeoutInterval = 20
-        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        request.setValue("2022-11-28", forHTTPHeaderField: "X-GitHub-Api-Version")
         request.setValue("Countpane/\(AppBuildInfo.productVersion)", forHTTPHeaderField: "User-Agent")
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw UpdateServiceError.invalidResponse }
-        switch http.statusCode {
-        case 200: break
-        case 403: throw UpdateServiceError.rateLimited
-        case 404: throw UpdateServiceError.noPublishedRelease
-        default: throw UpdateServiceError.httpStatus(http.statusCode)
+        guard (200..<300).contains(http.statusCode) else {
+            if http.statusCode == 404 { throw UpdateServiceError.noPublishedRelease }
+            throw UpdateServiceError.classifyHTTPFailure(
+                statusCode: http.statusCode,
+                headers: http.allHeaderFields.reduce(into: [String: String]()) { result, entry in
+                    result[String(describing: entry.key)] = String(describing: entry.value)
+                },
+                body: data,
+                now: Date()
+            )
         }
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode(GitHubRelease.self, from: data)
+        guard let resolvedURL = http.url,
+              let release = LatestRelease(resolvedURL: resolvedURL) else {
+            throw UpdateServiceError.invalidReleaseURL
+        }
+        return release
     }
 }
 
@@ -185,10 +192,12 @@ struct HomebrewUpdater: HomebrewUpdating {
 }
 
 
-enum UpdateServiceError: LocalizedError {
+enum UpdateServiceError: LocalizedError, Equatable {
     case invalidResponse
+    case invalidReleaseURL
     case httpStatus(Int)
-    case rateLimited
+    case forbidden
+    case rateLimited(retryAt: Date)
     case noPublishedRelease
     case invalidReleaseTag(String)
     case invalidCurrentVersion(String)
@@ -196,11 +205,60 @@ enum UpdateServiceError: LocalizedError {
     case commandFailed(String)
     case tapNotUpdated
 
+    static func classifyHTTPFailure(
+        statusCode: Int,
+        headers: [String: String],
+        body: Data,
+        now: Date
+    ) -> UpdateServiceError {
+        func header(_ name: String) -> String? {
+            headers.first { $0.key.caseInsensitiveCompare(name) == .orderedSame }?.value
+        }
+
+        let message = (try? JSONSerialization.jsonObject(with: body)) as? [String: Any]
+        let bodyMessage = (message?["message"] as? String ?? String(decoding: body, as: UTF8.self))
+            .lowercased()
+        let hasRateLimitEvidence = statusCode == 429 || (statusCode == 403 && (
+            header("Retry-After") != nil ||
+                header("X-RateLimit-Remaining")?.trimmingCharacters(in: .whitespacesAndNewlines) == "0" ||
+                bodyMessage.contains("rate limit") ||
+                bodyMessage.contains("rate-limit")
+        ))
+
+        guard hasRateLimitEvidence else {
+            return statusCode == 403 ? .forbidden : .httpStatus(statusCode)
+        }
+
+        let retryAt: Date
+        if let retryAfter = header("Retry-After"), let seconds = TimeInterval(retryAfter) {
+            retryAt = now.addingTimeInterval(max(1, seconds))
+        } else if let retryAfter = header("Retry-After"),
+                  let date = Self.parseHTTPDate(retryAfter), date > now {
+            retryAt = date
+        } else if let reset = header("X-RateLimit-Reset").flatMap(TimeInterval.init),
+                  Date(timeIntervalSince1970: reset) > now {
+            retryAt = Date(timeIntervalSince1970: reset)
+        } else {
+            retryAt = now.addingTimeInterval(60)
+        }
+        return .rateLimited(retryAt: retryAt)
+    }
+
+    private static func parseHTTPDate(_ value: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss z"
+        return formatter.date(from: value)
+    }
+
     var errorDescription: String? {
         switch self {
         case .invalidResponse: "GitHub returned an invalid response."
+        case .invalidReleaseURL: "GitHub did not redirect to a valid Countpane release."
         case .httpStatus(let code): "GitHub returned HTTP \(code). Try again later."
-        case .rateLimited: "GitHub temporarily limited update checks. Try again later."
+        case .forbidden: "GitHub denied the update check (HTTP 403). Check your network or try again later."
+        case .rateLimited(let retryAt): "GitHub rate limit is active. Try again after \(retryAt.formatted(date: .omitted, time: .shortened))."
         case .noPublishedRelease: "No published Countpane release is available yet."
         case .invalidReleaseTag(let tag): "The latest release tag ‘\(tag)’ is not a semantic version."
         case .invalidCurrentVersion(let version): "This build has an invalid product version ‘\(version)’."

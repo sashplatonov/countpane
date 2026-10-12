@@ -109,7 +109,7 @@ Your countdowns stay on your Mac at:
 ~/Library/Application Support/Countpane/countpane.sqlite3
 ```
 
-Countpane has no account or analytics service. Automatic update checks are optional; they query the public GitHub Releases API and send only the product version. Titles, dates, notes, and backup files are never transmitted.
+Countpane has no account or analytics service. Automatic update checks are optional; they follow GitHub's public latest-release link and send the product version in the request's user agent. Titles, dates, notes, and backup files are never transmitted.
 
 Runtime state is stored in a local SQLite database. Backups use Countpane's current versioned JSON interchange format. Import checks the format, duplicate identifiers, required titles, and urgency settings before replacing the local list. Unsupported backup formats are rejected rather than changed silently.
 
@@ -121,7 +121,7 @@ Runtime state is stored in a local SQLite database. Backups use Countpane's curr
 
 Countpane can check for a new version automatically or when you ask it to. For a Homebrew installation, **Install Update** runs a bounded Homebrew update outside the app's interface. For a DMG installation, Countpane opens the newest release page.
 
-If Homebrew is unavailable, the tap has not propagated yet, the network is offline, or GitHub rate-limits a request, Countpane explains the problem without exposing your data.
+If Homebrew is unavailable, the tap has not propagated yet, the network is offline, or GitHub temporarily limits a request, Countpane explains the problem and waits for the retry time when GitHub provides one.
 
 [↑ Back to top](#top)
 

@@ -49,31 +49,24 @@ struct SemanticVersion: Comparable, Equatable, Sendable, CustomStringConvertible
     }
 }
 
-struct GitHubRelease: Decodable, Sendable, Equatable {
-    struct Asset: Decodable, Sendable, Equatable {
-        let name: String
-        let browserDownloadURL: URL
-
-        enum CodingKeys: String, CodingKey {
-            case name
-            case browserDownloadURL = "browser_download_url"
-        }
-    }
-
+struct LatestRelease: Sendable, Equatable {
     let tagName: String
-    let name: String?
     let htmlURL: URL
-    let publishedAt: Date
-    let assets: [Asset]
 
     var semanticVersion: SemanticVersion? { SemanticVersion(tagName) }
 
-    enum CodingKeys: String, CodingKey {
-        case tagName = "tag_name"
-        case name
-        case htmlURL = "html_url"
-        case publishedAt = "published_at"
-        case assets
+    init?(resolvedURL: URL) {
+        guard resolvedURL.scheme?.lowercased() == "https",
+              resolvedURL.host?.lowercased() == "github.com" else { return nil }
+        let components = resolvedURL.pathComponents.filter { !$0.isEmpty && $0 != "/" }
+        guard components.count == 5,
+              components[0] == "sashplatonov",
+              components[1] == "countpane",
+              components[2] == "releases",
+              components[3] == "tag",
+              !components[4].isEmpty else { return nil }
+        self.tagName = components[4]
+        self.htmlURL = resolvedURL
     }
 }
 

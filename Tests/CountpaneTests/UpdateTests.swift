@@ -24,20 +24,10 @@ struct UpdateTests {
         #expect(SemanticVersion("release") == nil)
     }
 
-    @Test("GitHub release decoding accepts the official payload shape")
-    func releaseDecoding() throws {
-        let json = """
-        {
-          "tag_name": "v1.2.3",
-          "name": "Countpane 1.2.3",
-          "html_url": "https://github.com/sashplatonov/countpane/releases/tag/v1.2.3",
-          "published_at": "2026-08-03T12:00:00Z",
-          "assets": []
-        }
-        """
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        let release = try decoder.decode(GitHubRelease.self, from: Data(json.utf8))
+    @Test("GitHub latest-release redirect exposes a semantic release tag")
+    func releaseRedirect() throws {
+        let url = try #require(URL(string: "https://github.com/sashplatonov/countpane/releases/tag/v1.2.3"))
+        let release = try #require(LatestRelease(resolvedURL: url))
         #expect(release.semanticVersion == SemanticVersion("1.2.3"))
     }
 
@@ -263,8 +253,8 @@ struct UpdateTests {
 }
 
 private struct FakeReleaseClient: ReleaseChecking, @unchecked Sendable {
-    let result: Result<GitHubRelease, Error>
-    func latestRelease() async throws -> GitHubRelease { try result.get() }
+    let result: Result<LatestRelease, Error>
+    func latestRelease() async throws -> LatestRelease { try result.get() }
 }
 
 private struct FixedChannelDetector: InstallationChannelDetecting {
@@ -292,7 +282,7 @@ private final class CallCounter: @unchecked Sendable {
 private struct CountingReleaseClient: ReleaseChecking {
     let counter: CallCounter
 
-    func latestRelease() async throws -> GitHubRelease {
+    func latestRelease() async throws -> LatestRelease {
         counter.increment()
         try await Task.sleep(for: .milliseconds(80))
         return release("v1.0.0")
@@ -312,7 +302,7 @@ private actor CancellationAwareReleaseClient: ReleaseChecking {
     private var started = false
     private var cancelled = false
 
-    func latestRelease() async throws -> GitHubRelease {
+    func latestRelease() async throws -> LatestRelease {
         started = true
         do {
             try await Task.sleep(for: .seconds(5))
@@ -346,14 +336,8 @@ private enum TestError: LocalizedError {
     var errorDescription: String? { "Test update failed" }
 }
 
-private func release(_ tag: String) -> GitHubRelease {
-    GitHubRelease(
-        tagName: tag,
-        name: tag,
-        htmlURL: URL(string: "https://github.com/sashplatonov/countpane/releases/latest")!,
-        publishedAt: Date(timeIntervalSince1970: 2_000_000_000),
-        assets: []
-    )
+private func release(_ tag: String) -> LatestRelease {
+    LatestRelease(resolvedURL: URL(string: "https://github.com/sashplatonov/countpane/releases/tag/\(tag)")!)!
 }
 
 private func isolatedDefaults() -> UserDefaults {
